@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { differenceInMinutes } from "date-fns";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { CheckCircle2, DoorOpen, ArrowRight, Clock, ChevronDown, Users, AlertTriangle, LayoutDashboard, FileBarChart2 } from "lucide-react";
+import { CheckCircle2, DoorOpen, ArrowRight, Clock, ChevronDown, Users, AlertTriangle, LayoutDashboard, FileBarChart2, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useModalidadeThroughput, calcularETA, formatETA } from "@/features/farol/services/previsaoAtendimento";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -332,6 +332,13 @@ export default function FarolHub() {
           subtitle="Monitoramento em tempo real dos pacientes aguardando exame, por modalidade"
           actions={
             <>
+              <Link
+                to="/farol/anamnese"
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-input bg-card text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <ClipboardList className="h-4 w-4" />
+                Anamnese
+              </Link>
               <Link
                 to="/farol/dashboard"
                 className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-input bg-card text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"

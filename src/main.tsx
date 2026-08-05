@@ -24,6 +24,7 @@ const PanoramaNetris      = lazy(() => import("@/features/farol/pages/PanoramaNe
 const PacientesChegou     = lazy(() => import("@/features/farol/pages/PacientesChegou"));
 const BuscaAtendimentos   = lazy(() => import("@/features/farol/pages/BuscaAtendimentos"));
 const TemposExames        = lazy(() => import("@/features/farol/pages/TemposExames"));
+const FarolAnamnese       = lazy(() => import("@/features/farol/pages/FarolAnamnese"));
 const TVFarol             = lazy(() => import("@/features/farol/pages/TVFarol"));
 
 const queryClient = new QueryClient();
@@ -68,6 +69,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/farol/chegou" element={<RequireAuth><PacientesChegou /></RequireAuth>} />
               <Route path="/farol/busca" element={<RequireAuth><BuscaAtendimentos /></RequireAuth>} />
               <Route path="/farol/tempos" element={<RequireAuth><TemposExames /></RequireAuth>} />
+              <Route path="/farol/anamnese" element={<RequireAuth><FarolAnamnese /></RequireAuth>} />
               <Route path="*" element={<Navigate to="/farol" replace />} />
             </Routes>
           </Suspense>

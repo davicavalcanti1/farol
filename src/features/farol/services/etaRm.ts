@@ -109,6 +109,23 @@ export function classificarSemaforo(trabalhoTotalSeg: number): SemaforoEstado {
   return "sobrecarga";                               // ≥ 2h
 }
 
+// ── Semáforo clássico do Excel (aba FAROL ATRASO) ────────────────────────────
+// Limiares do VBA AjustarSemaforo (shapes GREENB/YELLOWB/REDB):
+//   ≤ 1h verde · ≤ 1h40 amarelo · acima vermelho — sobre o trabalho total.
+export type SemaforoExcel = "verde" | "amarelo" | "vermelho";
+
+export function classificarSemaforoExcel(trabalhoTotalSeg: number): SemaforoExcel {
+  if (trabalhoTotalSeg <= 3600) return "verde";
+  if (trabalhoTotalSeg <= 6000) return "amarelo";
+  return "vermelho";
+}
+
+export const SEMAFORO_EXCEL_INFO: Record<SemaforoExcel, { rotulo: string; acao: string }> = {
+  verde:    { rotulo: "No ritmo",  acao: "Até 1h de trabalho pendente — fluxo saudável." },
+  amarelo:  { rotulo: "Atenção",   acao: "Entre 1h e 1h40 de trabalho pendente — priorizar a fila." },
+  vermelho: { rotulo: "Atrasado",  acao: "Mais de 1h40 de trabalho pendente — reforçar a etapa e avisar a recepção." },
+};
+
 export const SEMAFORO_INFO: Record<SemaforoEstado, { rotulo: string; acao: string }> = {
   ocioso:     { rotulo: "Fila curta",  acao: "Menos de 45min de exames na fila — a máquina vai ociar. Puxar encaixes e confirmar próximos agendamentos." },
   verde:      { rotulo: "Ritmo bom",   acao: "Entre 45min e 1h30 de fila — ritmo saudável de trabalho." },
