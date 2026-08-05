@@ -6,6 +6,7 @@ export default function FarolRessonancia() {
     <FarolRealtimePage
       modalidadeId={[MODALIDADE.RESSONANCIA, MODALIDADE.RESSONANCIA_CONTRASTE]}
       title="Ressonância Magnética"
+      previsaoPorProtocolo
       situacaoIds={[
         SITUACAO.ENCAMINHADO_EXAME,
         SITUACAO.ANAMNESE,

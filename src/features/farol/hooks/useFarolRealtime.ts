@@ -29,6 +29,8 @@ export interface FarolPaciente {
   situacao: string;
   medicoAgrupado: string;
   salaAgrupada: string;
+  /** true se algum atendimento do paciente está flagado com anestesia */
+  anestesia: boolean;
 }
 
 interface FarolRow {
@@ -43,6 +45,7 @@ interface FarolRow {
   situacao_id:     number;
   situacao_nome:   string | null;
   primeira_vez:    string;
+  anestesia?:      boolean;
 }
 
 const STALE_MS = 30_000; // polling de backup a cada 30s (Realtime idealmente resolve antes)
@@ -130,6 +133,7 @@ export function useFarolRealtime(
         situacao:           primeiro.situacao_nome ?? "",
         medicoAgrupado:     primeiro.medico ?? "",
         salaAgrupada:       primeiro.sala ?? "",
+        anestesia:          ordenados.some(r => r.anestesia === true),
       });
     }
 

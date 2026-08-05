@@ -1,8 +1,8 @@
-﻿import { useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { hojeBRT } from "@/lib/dataBRT";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { format, differenceInMinutes } from "date-fns";
-import { ArrowLeft, RefreshCw, DoorOpen, X, Clock, Stethoscope, Check, ChevronDown } from "lucide-react";
+import { ArrowLeft, RefreshCw, DoorOpen, X, Clock, Stethoscope, Check, ChevronDown, Syringe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,6 +15,11 @@ import {
   type FarolPaciente,
 } from "@/features/farol/hooks/useFarolRealtime";
 import { useModalidadeThroughput, calcularETA, formatETA } from "@/features/farol/services/previsaoAtendimento";
+import {
+  useEmSalaRm, useToggleAnestesia, calcularEtasRm, SEMAFORO_INFO,
+  type SemaforoEstado,
+} from "@/features/farol/services/etaRm";
+import { useTemposExames, formatarSegundos } from "@/features/farol/services/temposExameService";
 import { SITUACAO } from "@/services/netris/client";
 import { LOCALIDADES, salaToLocalidade, type Localidade } from "@/features/farol/utils/localidade";
 import { MapPin } from "lucide-react";
@@ -61,7 +66,19 @@ interface Props {
   situacaoIds?: number[];
   /** Se informado, separa os pacientes em sub-farois por modalidade */
   modalidadesInfo?: ModalidadeInfo[];
+  /**
+   * Liga a previsão por protocolo (tabela farol_tempos_exame + ETA cumulativa
+   * + semáforo de fila do farol Excel). Hoje só a Ressonância usa.
+   */
+  previsaoPorProtocolo?: boolean;
 }
+
+const SEMAFORO_CHIP: Record<SemaforoEstado, string> = {
+  ocioso:     "bg-red-100 text-red-700 border-red-300",
+  verde:      "bg-green-100 text-green-700 border-green-300",
+  amarelo:    "bg-yellow-100 text-yellow-800 border-yellow-300",
+  sobrecarga: "bg-red-100 text-red-700 border-red-300 animate-soft-pulse",
+};
 
 // ── Componente ────────────────────────────────────────────────────────────────
 
@@ -70,6 +87,7 @@ export function FarolRealtimePage({
   title,
   situacaoIds = [SITUACAO.ENCAMINHADO_EXAME],
   modalidadesInfo,
+  previsaoPorProtocolo = false,
 }: Props) {
   const navigate  = useNavigate();
   const { tenant, profile } = useAuth();
@@ -79,6 +97,15 @@ export function FarolRealtimePage({
     useFarolRealtime(modalidadeId, situacaoIds);
   const { data: throughput } = useModalidadeThroughput(title);
   const duracaoEstimadaMin = throughput?.duracaoMediaMinutos ?? 20;
+
+  // ── Previsão por protocolo (Farol RM) ──────────────────────────────────────
+  const modIdsArray = useMemo(
+    () => (Array.isArray(modalidadeId) ? modalidadeId : [modalidadeId]),
+    [Array.isArray(modalidadeId) ? modalidadeId.join(",") : modalidadeId],
+  );
+  const { data: temposRm } = useTemposExames("RM", previsaoPorProtocolo);
+  const { data: emSala } = useEmSalaRm(modIdsArray, previsaoPorProtocolo);
+  const toggleAnestesia = useToggleAnestesia();
 
   const [searchParams] = useSearchParams();
   // Permite pre-filtro vindo do Hub via ?salas=sala1,sala2 (encoded)
@@ -103,6 +130,21 @@ export function FarolRealtimePage({
     const t = setInterval(() => setTick(n => n + 1), 60_000);
     return () => clearInterval(t);
   });
+
+  // ETA por protocolo: calculada sobre a fila COMPLETA (sem filtros de sala/
+  // localidade) — filtrar a visão não muda a posição real de ninguém.
+  // Recalcula a cada tick (1min), sync ou mudança na tabela de tempos.
+  const etaRm = useMemo(() => {
+    if (!previsaoPorProtocolo || !temposRm || temposRm.length === 0) return null;
+    return calcularEtasRm({
+      pacientes,
+      tempos: temposRm,
+      emSala: emSala ?? [],
+      fallbackMin: duracaoEstimadaMin,
+      agora: new Date(),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previsaoPorProtocolo, temposRm, emSala, pacientes, duracaoEstimadaMin, tick]);
 
   const salas = [...new Set(
     pacientes.flatMap(p => p.exames.map(e => e.sala).filter(Boolean))
@@ -231,8 +273,14 @@ export function FarolRealtimePage({
       ? `${tempoNaFila}m`
       : `${Math.floor(tempoNaFila/60)}h ${tempoNaFila%60}m`;
     const posicao = index - 1; // index é 1-based; ETA precisa 0-based
-    const eta = calcularETA(now, posicao, duracaoEstimadaMin);
+    const infoRm = etaRm?.porChave.get(p.chave) ?? null;
+    const eta = infoRm?.entradaEstimada ?? calcularETA(now, posicao, duracaoEstimadaMin);
     const etaLabel = formatETA(eta, now);
+    const etaTitle = infoRm
+      ? infoRm.usouFallback
+        ? "Por protocolo — inclui exame SEM protocolo cadastrado (usou média da modalidade)"
+        : "Por protocolo: agora + restante de quem está em sala + ciclos de quem está na frente"
+      : `Estimativa baseada em ${throughput?.diasComDados ?? 0} dias de histórico (${duracaoEstimadaMin}min/exame)`;
 
     return (
       <div
@@ -248,7 +296,10 @@ export function FarolRealtimePage({
               <span className={`h-2.5 w-2.5 rounded-full ${c.dot}`} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className={`font-bold text-sm leading-tight truncate ${c.name}`}>{p.nomePaciente}</p>
+              <p className={`font-bold text-sm leading-tight truncate ${c.name}`}>
+                {p.anestesia && <Syringe className="inline h-3 w-3 mr-1 text-purple-600" aria-label="Anestesia" />}
+                {p.nomePaciente}
+              </p>
               <div className="flex flex-col gap-0.5 mt-0.5">
                 {p.exames.map(e => (
                   <p key={e.id} className="text-xs text-muted-foreground truncate">🔬 {e.nome}</p>
@@ -275,7 +326,13 @@ export function FarolRealtimePage({
                 <span className="text-[9px] text-muted-foreground">na fila</span>
                 <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border bg-muted text-muted-foreground border-border">{tempoFila}</span>
               </div>
-              <div className="flex flex-col items-end gap-0.5" title={`Estimativa baseada em ${throughput?.diasComDados ?? 0} dias de histórico (${duracaoEstimadaMin}min/exame)`}>
+              {infoRm && (
+                <div className="flex flex-col items-end gap-0.5">
+                  <span className="text-[9px] text-muted-foreground">ciclo</span>
+                  <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border bg-violet-50 text-violet-700 border-violet-200">{formatarSegundos(infoRm.cicloSeg)}</span>
+                </div>
+              )}
+              <div className="flex flex-col items-end gap-0.5" title={etaTitle}>
                 <span className="text-[9px] text-muted-foreground">previsão</span>
                 <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border bg-sky-50 text-sky-700 border-sky-200">{etaLabel}</span>
               </div>
@@ -290,7 +347,10 @@ export function FarolRealtimePage({
             <span className={`h-2.5 w-2.5 rounded-full ${c.dot}`} />
           </div>
           <div className="col-span-3">
-            <p className={`text-sm font-semibold truncate ${c.name}`}>{p.nomePaciente}</p>
+            <p className={`text-sm font-semibold truncate ${c.name}`}>
+              {p.anestesia && <Syringe className="inline h-3.5 w-3.5 mr-1 text-purple-600" aria-label="Anestesia" />}
+              {p.nomePaciente}
+            </p>
             {p.exames.length > 1 && (
               <span className="text-[10px] bg-purple-100 text-purple-700 rounded px-1.5 py-0.5 border border-purple-200 font-semibold">
                 {p.exames.length} exames
@@ -320,7 +380,13 @@ export function FarolRealtimePage({
               <span className="text-[10px] text-muted-foreground">na fila</span>
               <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border bg-muted text-muted-foreground border-border">{tempoFila}</span>
             </div>
-            <div className="flex items-center gap-1" title={`Estimativa baseada em ${throughput?.diasComDados ?? 0} dias de histórico (${duracaoEstimadaMin}min/exame)`}>
+            {infoRm && (
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] text-muted-foreground">ciclo</span>
+                <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border bg-violet-50 text-violet-700 border-violet-200">{formatarSegundos(infoRm.cicloSeg)}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1" title={etaTitle}>
               <span className="text-[10px] text-muted-foreground">previsão</span>
               <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border bg-sky-50 text-sky-700 border-sky-200">{etaLabel}</span>
             </div>
@@ -348,6 +414,16 @@ export function FarolRealtimePage({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {etaRm && (
+              <div
+                className={`flex items-center gap-1.5 h-8 px-2.5 rounded-md border text-xs font-semibold ${SEMAFORO_CHIP[etaRm.semaforo]}`}
+                title={`${SEMAFORO_INFO[etaRm.semaforo].acao}${etaRm.pacientesEmSala > 0 ? ` · ${etaRm.pacientesEmSala} em sala` : ""}${etaRm.misses.length > 0 ? ` · ${etaRm.misses.length} exame(s) sem protocolo cadastrado em /farol/tempos` : ""}`}
+              >
+                <span className="h-2 w-2 rounded-full bg-current" />
+                <span className="hidden sm:inline">{SEMAFORO_INFO[etaRm.semaforo].rotulo}</span>
+                <span className="font-mono">{formatarSegundos(etaRm.trabalhoTotalSeg)}</span>
+              </div>
+            )}
             {localidadesPresentes.length > 1 && (
               <Popover>
                 <PopoverTrigger asChild>
@@ -602,6 +678,38 @@ export function FarolRealtimePage({
                         <span className="text-xs font-semibold text-muted-foreground uppercase">Atraso</span>
                         <span className={`font-mono font-bold text-sm px-3 py-1 rounded-lg border ${c.badge}`}>{formatAtraso(atraso)}</span>
                       </div>
+
+                      {/* Anestesia (só no farol com previsão por protocolo) */}
+                      {previsaoPorProtocolo && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1">
+                            <Syringe className="h-3 w-3" /> Anestesia
+                          </span>
+                          <button
+                            disabled={toggleAnestesia.isPending}
+                            onClick={async () => {
+                              const valor = !selected.anestesia;
+                              const ids = selected.exames.map(e => e.id).filter(Boolean);
+                              try {
+                                await toggleAnestesia.mutateAsync({ atendimentoIds: ids, valor });
+                                setSelected({ ...selected, anestesia: valor });
+                                toast.success(valor
+                                  ? "Anestesia marcada — adicional somado ao ciclo"
+                                  : "Anestesia desmarcada");
+                              } catch (e: any) {
+                                toast.error("Não foi possível salvar", { description: e?.message });
+                              }
+                            }}
+                            className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors disabled:opacity-50 ${
+                              selected.anestesia
+                                ? "bg-purple-100 text-purple-700 border-purple-300"
+                                : "bg-muted text-muted-foreground border-border hover:bg-purple-50"
+                            }`}
+                          >
+                            {selected.anestesia ? "Com anestesia" : "Sem anestesia"}
+                          </button>
+                        </div>
+                      )}
 
                       {/* Baixa */}
                       <div className="pt-3 border-t border-border">

@@ -75,11 +75,11 @@ export function parseDuracao(txt: string): number | null {
 
 const QUERY_KEY = "farol-tempos-exame";
 
-export function useTemposExames(modalidade = "RM") {
+export function useTemposExames(modalidade = "RM", enabled = true) {
   const { tenant } = useAuth();
   return useQuery({
     queryKey: [QUERY_KEY, tenant?.id, modalidade],
-    enabled: !!tenant?.id,
+    enabled: enabled && !!tenant?.id,
     queryFn: async (): Promise<TempoExame[]> => {
       const { data, error } = await (supabase as any)
         .from("farol_tempos_exame")
