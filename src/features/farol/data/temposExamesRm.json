@@ -1,0 +1,1370 @@
+[
+ {
+  "procedimento": "*ANESTESIA",
+  "base_seg": 1080,
+  "tolerancia": 0.0,
+  "preparo_seg": 0,
+  "contraste_seg": 0,
+  "saida_seg": 0,
+  "observacao": null
+ },
+ {
+  "procedimento": "*ANESTESIA CRÍTICA",
+  "base_seg": 1440,
+  "tolerancia": 0.0,
+  "preparo_seg": 0,
+  "contraste_seg": 0,
+  "saida_seg": 0,
+  "observacao": "Crianças menores de 4 anos e pacientes complicados."
+ },
+ {
+  "procedimento": "ANGIO RM ABDOME SUPERIOR ARTERIAL",
+  "base_seg": 360,
+  "tolerancia": 0.08,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "ANGIO RM ABDOME TOTAL*/AORTA",
+  "base_seg": 360,
+  "tolerancia": 0.08,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "ANGIO RM AORTA TORACICA",
+  "base_seg": 480,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "ANGIO RM ARTERIAL DO CRANIO",
+  "base_seg": 600,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "ANGIO RM ARTERIAL DO CRANIO C/ CONTRASTE*",
+  "base_seg": 900,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "ANGIO RM CRANIO ARTERIAL",
+  "base_seg": 600,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "ANGIO RM CRANIO VENOSA",
+  "base_seg": 780,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "ANGIO RM CRANIO VENOSA C/ CONTRASTE*",
+  "base_seg": 1080,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "ANGIO RM DA COLUNA CERVICAL",
+  "base_seg": 900,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "Indicado sempre com CONTRASTE."
+ },
+ {
+  "procedimento": "ANGIO RM DO ABDOME TOTAL",
+  "base_seg": 360,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "ANGIO RM DO CRANIO",
+  "base_seg": 1140,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "Indicado sempre com CONTRASTE."
+ },
+ {
+  "procedimento": "ANGIO RM DO MEMBRO ARTERIAL INFERIOR DIREITO OU ESQUERDO",
+  "base_seg": 1200,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "ANGIO RM DO PESCOÇO",
+  "base_seg": 1140,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "ANGIO RM PESCOCO VENOSA",
+  "base_seg": 900,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "ANGIO RM TORAX ARTERIAL",
+  "base_seg": 823,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "ANGIO RM VENOSA DA PELVE",
+  "base_seg": 360,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "ENTERO RESSONÂNCIA",
+  "base_seg": 1423,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24 Exige 50 minutos de preparo intestinal com laxante"
+ },
+ {
+  "procedimento": "RM ABDOME SUPERIOR",
+  "base_seg": 300,
+  "tolerancia": 0.9,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "Envolve respiração, é mais instável"
+ },
+ {
+  "procedimento": "RM ABDOME SUPERIOR C/ CONTRASTE",
+  "base_seg": 480,
+  "tolerancia": 0.15,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "Envolve respiração, é mais instável"
+ },
+ {
+  "procedimento": "RM ABDOME SUPERIOR C/ CONTRASTE (HEPATO ESP. PRIMOVIST/MULTIHANCE)",
+  "base_seg": 563,
+  "tolerancia": 0.15,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "Envolve respiração, é mais instável. Faz-se um pedaço do exame, sai da sala e aguarda 1 hora fora de sala e depois retorna."
+ },
+ {
+  "procedimento": "RM ABDOME TOTAL",
+  "base_seg": 807,
+  "tolerancia": 0.15,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM ABDOME TOTAL C/ CONTRASTE",
+  "base_seg": 1060,
+  "tolerancia": 0.15,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24 Para exames de \"combo\" observar se as sequências na máquina passam parte a parte, pois a ordem da sequência altera o tempo de exame devido ao tempo de movimentação do scanner e calibração para escanear)."
+ },
+ {
+  "procedimento": "RM ABDOME TOTAL C/ CONTRASTE - ACHAR TESTÍCULO",
+  "base_seg": 1312,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM ABDOME TOTAL C/ CONTRASTE - PRÓSTATA",
+  "base_seg": 1920,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM ABDOME TOTAL C/ CONTRASTE (PACIENTE COMPLICADO)",
+  "base_seg": 1246,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM ABDOME TOTAL C/ CONTRASTE HEPATO ESPECIFICO",
+  "base_seg": 1080,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "Faz-se um pedaço do exame, sai da sala e aguarda 1 hora fora de sala e depois retorna."
+ },
+ {
+  "procedimento": "RM ANTEBRACO C/ CONTRASTE",
+  "base_seg": 1320,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM ANTEBRACO D",
+  "base_seg": 780,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM ANTEBRACO E",
+  "base_seg": 780,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM ARTICULAÇÃO COXO FEMURAL",
+  "base_seg": 900,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM ARTICULACAO TEMPOROMANDIBULAR",
+  "base_seg": 601,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM ARTICULACAO TEMPOROMANDIBULAR C/ CONTRASTE",
+  "base_seg": 840,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "Dica: não faz muita diferença atm com/sem contraste."
+ },
+ {
+  "procedimento": "RM BACIA",
+  "base_seg": 780,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM BACIA C/ CONTRASTE",
+  "base_seg": 1200,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM BASE DO CRANIO C/ CONTRASTE",
+  "base_seg": 1487,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM BOLSA ESCROTAL",
+  "base_seg": 1286,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM BOLSA ESCROTAL C/ CONTRASTE",
+  "base_seg": 1286,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM BRACO C/ CONTRASTE",
+  "base_seg": 1320,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM BRACO D",
+  "base_seg": 1020,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM BRACO E",
+  "base_seg": 1020,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM COCCIX",
+  "base_seg": 1020,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM COCCIX C/ CONTRASTE",
+  "base_seg": 1440,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM COLANGIO",
+  "base_seg": 915,
+  "tolerancia": 0.15,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM COLÂNGIO C/ CONTRASTE",
+  "base_seg": 915,
+  "tolerancia": 0.15,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM COLÂNGIO C/ CONTRASTE HEPATO ESPECIFICO",
+  "base_seg": 780,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM COLUNA CERVICAL",
+  "base_seg": 540,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM COLUNA CERVICAL C/ CONTRASTE",
+  "base_seg": 810,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM COLUNA DORSAL",
+  "base_seg": 613,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM COLUNA DORSAL C/ CONTRASTE",
+  "base_seg": 1077,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM COLUNA LOMBAR",
+  "base_seg": 287,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM COLUNA LOMBAR C/ CONTRASTE",
+  "base_seg": 720,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM COLUNA TOTAL",
+  "base_seg": 1391,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM COLUNA TOTAL C/ CONTRASTE *",
+  "base_seg": 2383,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM CORACAO -MORFOLOGICO E FUNCIONAL + PERFUSAO + VIABLIDADE MIOCARDICA",
+  "base_seg": 1200,
+  "tolerancia": 1.0,
+  "preparo_seg": 150,
+  "contraste_seg": 90,
+  "saida_seg": 150,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM CORACAO SEM STRESS",
+  "base_seg": 1200,
+  "tolerancia": 1.5,
+  "preparo_seg": 150,
+  "contraste_seg": 90,
+  "saida_seg": 150,
+  "observacao": "Coloca-se eletródos antes do exame, dentro da sala."
+ },
+ {
+  "procedimento": "RM COTOVELO C/ CONTRASTE",
+  "base_seg": 1392,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM COTOVELO D",
+  "base_seg": 780,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM COTOVELO E",
+  "base_seg": 780,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM COXA C/ CONTRASTE",
+  "base_seg": 1320,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM COXA D",
+  "base_seg": 900,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM COXA E",
+  "base_seg": 900,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM COXO FEMURAL D",
+  "base_seg": 900,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM COXO FEMURAL E",
+  "base_seg": 900,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM CRANIO - CONVULSÃO/EPILEPSIA/ALZHEIMER",
+  "base_seg": 709,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM CRANIO - EPILEPSIA",
+  "base_seg": 619,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM CRANIO - ESPECTROSCOPIA",
+  "base_seg": 1680,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM CRANIO - FOSSA POSTERIOR",
+  "base_seg": 697,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM CRANIO - HIPOFISE",
+  "base_seg": 840,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM CRANIO - IDOSO",
+  "base_seg": 572,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM CRANIO - PARKINSON (LABIRINTITE/NERVO CRAN.)",
+  "base_seg": 794,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM CRANIO - ROTINA (CEFALEIA)",
+  "base_seg": 530,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM CRANIO C/ CONTRASTE - EPILEPSIA",
+  "base_seg": 725,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM CRANIO C/ CONTRASTE - ESCLEROSE MÚLTIPLA",
+  "base_seg": 919,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM CRANIO C/ CONTRASTE - FOSSA POSTERIOR",
+  "base_seg": 877,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM CRANIO C/ CONTRASTE - HIPÓFISE MACRO",
+  "base_seg": 958,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM CRANIO C/ CONTRASTE - HIPÓFISE MICRO",
+  "base_seg": 852,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM CRANIO C/ CONTRASTE - IDOSO",
+  "base_seg": 752,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM CRANIO C/ CONTRASTE - PARKINSON (LABIRINTITE/NERVO CRAN.)",
+  "base_seg": 982,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM CRANIO C/ CONTRASTE - ROTINA (CEFALEIA)",
+  "base_seg": 720,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM CRANIO C/ FLUXO LIQUÓRICO",
+  "base_seg": 1740,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM CRANIO C/ FLUXO LIQUÓRICO C/ CONTRASTE",
+  "base_seg": 1620,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM CRANIO C/ PERFUSÃO",
+  "base_seg": 854,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM DAS ARTICULAÇÕES SACRO ILIACAS",
+  "base_seg": 420,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM DAS ARTICULAÇÕES SACRO ILIACAS C/ CONTRASTE",
+  "base_seg": 780,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM DEDO *",
+  "base_seg": 1320,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM DEDO C/ CONTRASTE *",
+  "base_seg": 1680,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM DO APARELHO URINARIO C/ CONTRASTE",
+  "base_seg": 1380,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM FACE",
+  "base_seg": 1377,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM FACE C/ CONTRASTE",
+  "base_seg": 1720,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM FEMUR",
+  "base_seg": 900,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM JOELHO",
+  "base_seg": 314,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM JOELHO C/ CONTRASTE",
+  "base_seg": 840,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM JOELHO D",
+  "base_seg": 314,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM JOELHO E",
+  "base_seg": 314,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM MAMA BILATERAL",
+  "base_seg": 360,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM MAMA BILATERAL C/ CONTRASTE",
+  "base_seg": 540,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM MAMA BILATERAL C/ CONTRASTE - SILICONE",
+  "base_seg": 1260,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM MAO (NAO INCLUI PUNHO) C/ CONTRASTE",
+  "base_seg": 1800,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM MAO D (NAO INCLUI PUNHO)",
+  "base_seg": 780,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM MAO E (NAO INCLUI PUNHO)",
+  "base_seg": 780,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM MASTOIDES",
+  "base_seg": 786,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM MASTOIDES C/ CONTRASTE",
+  "base_seg": 928,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM OMBRO C/ CONTRASTE",
+  "base_seg": 600,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM OMBRO D",
+  "base_seg": 420,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM OMBRO E",
+  "base_seg": 420,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM ORBITA",
+  "base_seg": 1065,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM ORBITA C/ CONTRASTE",
+  "base_seg": 1268,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM OSSOS TEMPORAIS C/ CONTRASTE",
+  "base_seg": 1487,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PE *",
+  "base_seg": 720,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PE C/ CONTRASTE",
+  "base_seg": 900,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PE D",
+  "base_seg": 720,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PE E",
+  "base_seg": 720,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PELVE - CÂNCER NO RETO",
+  "base_seg": 1148,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PELVE - PRÓSTATA",
+  "base_seg": 687,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM PELVE - ROTINA (CISTO/MIOMA/DOR)",
+  "base_seg": 420,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PELVE C/ CONTRASTE - ENDOMETRIOSE",
+  "base_seg": 767,
+  "tolerancia": 0.05,
+  "preparo_seg": 180,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PELVE C/ CONTRASTE - FISTULA ANAL/TUMOR RETO/BEXIGA",
+  "base_seg": 1115,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PELVE C/ CONTRASTE - PRÓSTATA",
+  "base_seg": 1641,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "ATT Dr. Pericles nov/24"
+ },
+ {
+  "procedimento": "RM PELVE C/ CONTRASTE - ROTINA (CISTO/MIOMA/DOR)",
+  "base_seg": 556,
+  "tolerancia": 0.05,
+  "preparo_seg": 180,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PELVE C/ CONTRASTE - ROTINA (MULHER)",
+  "base_seg": 656,
+  "tolerancia": 0.05,
+  "preparo_seg": 180,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PENIS C/ CONTRASTE",
+  "base_seg": 2326,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PERFUSAO CEREBRAL",
+  "base_seg": 143,
+  "tolerancia": 0.0,
+  "preparo_seg": 0,
+  "contraste_seg": 0,
+  "saida_seg": 0,
+  "observacao": "Deve estar junto com uma RM CRANIO. Não se faz apenas a perfusão."
+ },
+ {
+  "procedimento": "RM PERFUSAO CEREBRAL + ESPECTROSCOPIA",
+  "base_seg": 743,
+  "tolerancia": 0.0,
+  "preparo_seg": 0,
+  "contraste_seg": 0,
+  "saida_seg": 0,
+  "observacao": "Deve estar junto com uma RM CRANIO. Não se faz apenas a perfusão."
+ },
+ {
+  "procedimento": "RM PERNA C/ CONTRASTE",
+  "base_seg": 2160,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PERNA D",
+  "base_seg": 960,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PERNA E",
+  "base_seg": 960,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PESCOCO",
+  "base_seg": 1080,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PESCOCO C/ CONTRASTE",
+  "base_seg": 1740,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "REVISAR: planilha original tinha duplicata com base 23min"
+ },
+ {
+  "procedimento": "RM PLEXO BRAQUIAL",
+  "base_seg": 1860,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PLEXO BRAQUIAL C/ CONTRASTE",
+  "base_seg": 2400,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM POR ESPECTROSCOPIA",
+  "base_seg": 600,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM POR ESPECTROSCOPIA (+ CRANIO C/C)",
+  "base_seg": 1980,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM PUNHO C/ CONTRASTE",
+  "base_seg": 1500,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": "AJUSTE TEMPO DEVIDO A FALHA TREINM. TEC"
+ },
+ {
+  "procedimento": "RM PUNHO D",
+  "base_seg": 1500,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "AJUSTE TEMPO DEVIDO A FALHA TREINM. TEC | REVISAR: planilha original tinha duplicata com base 8min"
+ },
+ {
+  "procedimento": "RM PUNHO E",
+  "base_seg": 1500,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM QUADRIL C/ CONTRASTE",
+  "base_seg": 1020,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM QUADRIL D",
+  "base_seg": 641,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM QUADRIL D + E",
+  "base_seg": 1279,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM QUADRIL E",
+  "base_seg": 641,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM SACRO COCCIX",
+  "base_seg": 986,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM SACROCOCCIGEA",
+  "base_seg": 986,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM SEIOS DA FACE",
+  "base_seg": 1680,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM SELA TURCICA C/ CONTRASTE",
+  "base_seg": 852,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM SIALO",
+  "base_seg": 1320,
+  "tolerancia": 0.05,
+  "preparo_seg": 210,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "Antes de começar paciente ingere suco de limão."
+ },
+ {
+  "procedimento": "RM SIALO C/ CONTRASTE",
+  "base_seg": 1920,
+  "tolerancia": 0.05,
+  "preparo_seg": 210,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": "Antes de começar paciente ingere suco de limão."
+ },
+ {
+  "procedimento": "RM TORAX",
+  "base_seg": 1007,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM TORAX C/ CONTRASTE",
+  "base_seg": 1080,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM TORNOZELO C/ CONTRASTE",
+  "base_seg": 900,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 90,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM TORNOZELO D",
+  "base_seg": 720,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ },
+ {
+  "procedimento": "RM TORNOZELO E",
+  "base_seg": 720,
+  "tolerancia": 0.05,
+  "preparo_seg": 90,
+  "contraste_seg": 0,
+  "saida_seg": 90,
+  "observacao": null
+ }
+]

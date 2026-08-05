@@ -4,7 +4,7 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Radar } from "lucide-react";
+import { LogOut, Radar, Timer } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/shared/contexts/AuthContext";
@@ -43,6 +43,13 @@ export function MainLayout({ children, title, subtitle, eyebrow, headerActions }
           Farol
         </button>
         <div className="flex items-center gap-3">
+          <Button
+            variant="ghost" size="sm"
+            onClick={() => navigate("/farol/tempos")}
+            className="gap-1.5 text-muted-foreground"
+          >
+            <Timer className="h-4 w-4" /> Tempos
+          </Button>
           <span className="text-sm text-muted-foreground hidden sm:block">
             {profile?.full_name ?? user?.email}
           </span>
