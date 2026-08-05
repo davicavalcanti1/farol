@@ -11,15 +11,15 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Credenciais (podem ser sobrescritas via Supabase secrets)
-const UAZAPI_URL   = Deno.env.get("UAZAPI_URL")   ?? "https://imagoradiologia.uazapi.com/send/text";
-// Token vem só de secret — nunca versionar segredo no código.
+// Configuração vem TODA de Supabase secrets — repo é público, nada de
+// instância/número/token hardcoded. Sem UAZAPI_URL ou números, a function
+// loga e sai sem enviar (não é erro: instalação sem WhatsApp configurado).
+const UAZAPI_URL   = Deno.env.get("UAZAPI_URL")   ?? "";
 const UAZAPI_TOKEN = Deno.env.get("UAZAPI_TOKEN") ?? "";
 const TENANT_SLUG  = Deno.env.get("TENANT_SLUG")  ?? "imago";
 
-const NUMEROS = (Deno.env.get("FAROL_WHATSAPP_NUMEROS")
-  ?? "558388625776"
-).split(",").map(s => s.trim()).filter(Boolean);
+const NUMEROS = (Deno.env.get("FAROL_WHATSAPP_NUMEROS") ?? "")
+  .split(",").map(s => s.trim()).filter(Boolean);
 
 // Espelha o catálogo /netris/api/modalidades (filial 1) — atualizado em 26/mai/2026.
 // Quando o NetRis adicionar uma modalidade nova, basta acrescentar aqui;
@@ -78,8 +78,8 @@ function formatEspera(ms: number): string {
 // Retry só em erros de rede e HTTP 408/429/5xx — 4xx (auth/payload) não adianta
 // repetir. Backoff exponencial: 300ms → 900ms → 2700ms (~4s total no pior caso).
 async function sendWithRetry(numero: string, text: string): Promise<{ ok: boolean; erro?: string; tentativas: number }> {
-  if (!UAZAPI_TOKEN) {
-    return { ok: false, erro: "UAZAPI_TOKEN não configurado (secret ausente)", tentativas: 0 };
+  if (!UAZAPI_TOKEN || !UAZAPI_URL) {
+    return { ok: false, erro: "UAZAPI_TOKEN/UAZAPI_URL não configurados (secrets ausentes)", tentativas: 0 };
   }
   const MAX = 3;
   let ultimoErro = "";
