@@ -1,3 +1,7 @@
+// Primeiro import de propósito: valida o ambiente e derruba o processo com
+// mensagem legível se faltar o essencial, antes que qualquer outro módulo carregue
+// e leia uma env undefined.
+import { config, emProducao } from "./config.js";
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,7 +16,7 @@ app.use("/api/netris", netrisRoutes);
 
 // Em produção (container único) o Express também serve o build do Vite.
 // Em dev quem serve o front é o Vite (:5173) com proxy /api pra cá.
-if (process.env.NODE_ENV === "production") {
+if (emProducao) {
   const distDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../dist");
   app.use(express.static(distDir));
   app.get("*", (req, res) => {
@@ -21,7 +25,6 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-const PORT = Number(process.env.PORT ?? 3001);
-app.listen(PORT, () => {
-  console.log(`[farol-api] http://localhost:${PORT}`);
+app.listen(config.PORT, () => {
+  console.log(`[farol-api] http://localhost:${config.PORT} (${config.NODE_ENV})`);
 });
