@@ -6,12 +6,17 @@ import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import netrisRoutes from "./routes/netris.js";
+import { rotaSaude } from "./routes/saude.js";
 
 const app = express();
 
 app.use(express.json({ limit: "2mb" }));
 
-app.get("/api/health", (_req, res) => res.json({ ok: true }));
+// /api/health é o path histórico — mantido para não quebrar o que já monitora.
+// /health é o alias que o molde e o Hub da plataforma usam.
+app.use("/api/health", rotaSaude);
+app.use("/health", rotaSaude);
+
 app.use("/api/netris", netrisRoutes);
 
 // Em produção (container único) o Express também serve o build do Vite.
