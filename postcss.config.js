@@ -1,3 +1,4 @@
+import postcssImport from "postcss-import";
 import tailwindcss from "tailwindcss";
 import autoprefixer from "autoprefixer";
 
@@ -22,5 +23,5 @@ const legacyColorNotation = () => ({
 legacyColorNotation.postcss = true;
 
 export default {
-  plugins: [tailwindcss(), legacyColorNotation(), autoprefixer()],
+  plugins: [postcssImport(), tailwindcss(), legacyColorNotation(), autoprefixer()],
 };
