@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { hojeBRT } from "@/lib/dataBRT";
 import { cn } from "@/lib/utils";
 import { MODALIDADE } from "@/services/netris/client";
+import { railDe } from "@/features/farol/lib/modalidades";
 
 // ─── Modalidades disponíveis na TV ──────────────────────────────────────────
 
@@ -293,10 +294,12 @@ function useTVFarolData(modalidadeIds: number[]): {
 // ─── Coluna de uma modalidade ─────────────────────────────────────────────────
 
 function FarolColumn({
+  modalidadeId,
   label,
   pacientes,
   now,
 }: {
+  modalidadeId: number;
   label: string;
   pacientes: TVPaciente[];
   now: Date;
@@ -370,9 +373,12 @@ function FarolColumn({
   };
 
   return (
-    <div className="flex flex-col bg-white rounded-2xl border-2 border-gray-200 shadow-md overflow-hidden min-h-0">
+    /* Rail grosso: esta coluna é lida do outro lado da recepção, onde a cor
+       chega antes do texto. É o mesmo device e a mesma cor da Busca e do Hub,
+       só na espessura que a distância exige. */
+    <div className={cn(railDe(modalidadeId), "rail-lg flex flex-col bg-white rounded-2xl border-2 border-gray-200 shadow-md min-h-0")}>
       {/* Column header */}
-      <div className={cn("flex items-center justify-between px-4 py-3 border-b-2 shrink-0", hubHeader[status])}>
+      <div className={cn("flex items-center justify-between pl-5 pr-4 py-3 border-b-2 shrink-0", hubHeader[status])}>
         <div className="flex items-center gap-2.5">
           <div className="relative flex items-center justify-center">
             <span
@@ -390,7 +396,7 @@ function FarolColumn({
 
       {/* Table header */}
       {pacientes.length > 0 && (
-        <div className="px-3 py-1.5 bg-gray-100 border-b border-gray-200 grid grid-cols-[auto_1fr_auto] gap-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+        <div className="pl-5 pr-3 py-1.5 bg-gray-100 border-b border-gray-200 grid grid-cols-[auto_1fr_auto] gap-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
           <span className="text-center">#</span>
           <span>Nome</span>
           <span className="text-right">Atraso · Chegou</span>
@@ -649,6 +655,7 @@ export default function TVFarol() {
             return (
               <FarolColumn
                 key={modId}
+                modalidadeId={modId}
                 label={mod.label}
                 pacientes={pacientes}
                 now={now}

@@ -9,6 +9,8 @@ import { format, differenceInMinutes } from "date-fns";
 import { Search, Download, Loader2, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { railDe, chipDe, modalidadeDe } from "@/features/farol/lib/modalidades";
 
 export default function BuscaAtendimentos() {
   const [modalidades, setModalidades] = useState<{ id: number; nome: string }[]>([]);
@@ -49,11 +51,16 @@ export default function BuscaAtendimentos() {
     return Math.max(0, differenceInMinutes(new Date(), new Date(a.dataHora)));
   }
 
+  /* Badge translúcido: fundo é a cor de status a 10%, texto é a variante
+     `-strong`. É para isso que o `-strong` existe — a cor da superfície cheia
+     não tem contraste suficiente como texto sobre um fundo claro.
+     Antes eram classes fixas (bg-red-100 text-red-700), que ignoram o tema e
+     só funcionavam no claro. */
   function corSituacao(sid: number) {
-    if ([5].includes(sid))     return "bg-red-100 text-red-700";
-    if ([2, 26].includes(sid)) return "bg-amber-100 text-amber-700";
-    if ([3].includes(sid))     return "bg-emerald-100 text-emerald-700";
-    if ([13].includes(sid))    return "bg-blue-100 text-blue-700";
+    if ([5].includes(sid))     return "bg-destructive/10 text-destructive-strong";
+    if ([2, 26].includes(sid)) return "bg-warning/10 text-warning-strong";
+    if ([3].includes(sid))     return "bg-success/10 text-success-strong";
+    if ([13].includes(sid))    return "bg-info/10 text-info-strong";
     return "bg-muted text-muted-foreground";
   }
 
@@ -142,8 +149,13 @@ export default function BuscaAtendimentos() {
               </div>
             ) : (
               <div className="bg-card rounded-xl border shadow-card overflow-hidden">
-                <div className="hidden md:grid grid-cols-12 gap-2 px-4 py-2 bg-muted/50 border-b text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  <div className="col-span-1">#</div>
+                {/* A coluna era um contador sequencial (1, 2, 3…). Num
+                    resultado de busca esse número não é informação: não é
+                    posição de fila nem protocolo, só a ordem em que veio.
+                    Cedeu o lugar para a modalidade, que a tela não mostrava
+                    em lugar nenhum — só o texto do exame. */}
+                <div className="hidden md:grid grid-cols-12 gap-2 pl-5 pr-4 py-2 bg-muted/50 border-b text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <div className="col-span-1">Mod.</div>
                   <div className="col-span-3">Nome</div>
                   <div className="col-span-2">Exame</div>
                   <div className="col-span-2">Médico</div>
@@ -151,12 +163,18 @@ export default function BuscaAtendimentos() {
                   <div className="col-span-2">Status</div>
                   <div className="col-span-1 text-right">Espera</div>
                 </div>
-                {resultados.map((a, i) => {
+                {resultados.map((a) => {
                   const min = minEspera(a);
+                  const mod = modalidadeDe(a.modalidadeId);
                   return (
-                    <div key={a.id} className="border-b last:border-0">
-                      <div className="hidden md:grid grid-cols-12 gap-2 px-4 py-3 items-center text-sm">
-                        <div className="col-span-1 text-muted-foreground text-xs font-mono">{i + 1}</div>
+                    /* O rail na aresta esquerda pinta a linha com a cor da
+                       família de farol. Numa busca de 40 pacientes a
+                       distribuição por modalidade se lê antes do texto. */
+                    <div key={a.id} className={cn(railDe(a.modalidadeId), "border-b last:border-0")}>
+                      <div className="hidden md:grid grid-cols-12 gap-2 pl-5 pr-4 py-3 items-center text-sm">
+                        <div className="col-span-1">
+                          <span className={chipDe(a.modalidadeId)} title={mod.label}>{mod.codigo}</span>
+                        </div>
                         <div className="col-span-3 font-semibold text-foreground truncate">{a.nomePaciente}</div>
                         <div className="col-span-2 text-muted-foreground text-xs truncate">{a.exame}</div>
                         <div className="col-span-2 text-muted-foreground text-xs truncate">{a.medico ?? "—"}</div>
@@ -172,7 +190,7 @@ export default function BuscaAtendimentos() {
                       </div>
 
                       {/* Mobile */}
-                      <div className="md:hidden p-3 flex items-start gap-3">
+                      <div className="md:hidden py-3 pl-5 pr-3 flex items-start gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
                             <p className="font-bold text-sm truncate">{a.nomePaciente}</p>
@@ -180,8 +198,11 @@ export default function BuscaAtendimentos() {
                               {a.situacao ?? `Sit. ${a.situacaoId}`}
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground truncate">{a.exame}</p>
-                          {a.medico && <p className="text-xs text-muted-foreground">{a.medico}</p>}
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className={chipDe(a.modalidadeId)} title={mod.label}>{mod.codigo}</span>
+                            <p className="text-xs text-muted-foreground truncate">{a.exame}</p>
+                          </div>
+                          {a.medico && <p className="text-xs text-muted-foreground mt-0.5">{a.medico}</p>}
                         </div>
                       </div>
                     </div>

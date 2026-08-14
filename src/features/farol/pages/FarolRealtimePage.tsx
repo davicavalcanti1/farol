@@ -23,6 +23,8 @@ import { useTemposExames, formatarSegundos } from "@/features/farol/services/tem
 import { SITUACAO } from "@/services/netris/client";
 import { LOCALIDADES, salaToLocalidade, type Localidade } from "@/features/farol/utils/localidade";
 import { MapPin } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { railDe, chipDe, modalidadeDe } from "@/features/farol/lib/modalidades";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -557,18 +559,26 @@ export function FarolRealtimePage({
               }
 
               return porModalidade.map(({ info, pacientes: lista }) => (
-                <div key={info.id} className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-2.5 bg-primary/5 border-b border-border">
+                /* Rail na cor da família do farol. Aqui ele não distingue os
+                   sub-grupos entre si — RM e RM+ são a mesma família, logo a
+                   mesma cor —, quem distingue é o chip de código. O que o rail
+                   faz é manter a identidade: a fila do ultrassom é teal aqui,
+                   na Busca e na TV. */
+                <div key={info.id} className={cn(railDe(info.id), "bg-card rounded-xl border border-border shadow-card")}>
+                  <div className="flex items-center justify-between pl-5 pr-4 py-2.5 bg-primary/5 border-b border-border">
                     <div className="flex items-center gap-2">
                       {info.icon && <span className="text-base">{info.icon}</span>}
+                      <span className={chipDe(info.id)} title={modalidadeDe(info.id).label}>
+                        {modalidadeDe(info.id).codigo}
+                      </span>
                       <h2 className="text-sm font-bold text-foreground">{info.label}</h2>
-                      <span className="text-[10px] font-semibold text-blue-600 bg-blue-100 rounded-full px-2 py-0.5">
+                      <span className="text-[10px] font-semibold text-primary bg-primary/10 rounded-full px-2 py-0.5">
                         {lista.length} paciente{lista.length !== 1 ? "s" : ""}
                       </span>
                     </div>
                   </div>
 
-                  <div className="hidden md:grid grid-cols-12 gap-2 px-4 py-2 bg-muted/50 border-b border-border text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <div className="hidden md:grid grid-cols-12 gap-2 pl-5 pr-4 py-2 bg-muted/50 border-b border-border text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                     <div className="col-span-1 text-center">#</div>
                     <div className="col-span-3">Paciente</div>
                     <div className="col-span-3">Exame(s)</div>
@@ -584,7 +594,10 @@ export function FarolRealtimePage({
           ) : (
             // ── Modo lista única (comportamento original) ──
             <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
-              <div className="hidden md:grid grid-cols-12 gap-2 px-4 py-2 bg-gray-100 border-b border-gray-200 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+              {/* Era bg-gray-100/border-gray-200/text-gray-500 fixos — ignoravam
+                  o tema e discordavam do cabeçalho do modo agrupado, que já
+                  usava tokens. Agora os dois cabeçalhos são o mesmo. */}
+              <div className="hidden md:grid grid-cols-12 gap-2 px-4 py-2 bg-muted/50 border-b border-border text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 <div className="col-span-1 text-center">#</div>
                 <div className="col-span-3">Paciente</div>
                 <div className="col-span-3">Exame(s)</div>

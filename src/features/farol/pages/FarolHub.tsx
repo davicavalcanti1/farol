@@ -11,6 +11,7 @@ import { useModalidadeThroughput, calcularETA, formatETA } from "@/features/faro
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { railDaFamilia, type FamiliaModalidade } from "@/features/farol/lib/modalidades";
 
 type FarolStatus = "green" | "yellow" | "red";
 
@@ -20,17 +21,21 @@ interface FarolModule {
   href: string;
   modalidadeIds: number[];
   description: string;
+  /* A família da rampa de cor. Explícita e não derivada dos ids: o card é a
+     fila inteira, então a cor é identidade do farol, não de um atendimento.
+     Ver src/features/farol/lib/modalidades.ts. */
+  familia: FamiliaModalidade;
 }
 
 const FAROIS: FarolModule[] = [
-  { id: "ultrassom",     label: "Ultrassonografia",           href: "/farol/ultrassom",      modalidadeIds: [2],              description: "Fila em tempo real" },
-  { id: "radioterapia",  label: "Radiografia",                href: "/farol/radiografia",    modalidadeIds: [1],              description: "Fila em tempo real" },
-  { id: "tomografia",    label: "Tomografia",                 href: "/farol/tomografia",     modalidadeIds: [4],              description: "Fila em tempo real" },
-  { id: "mamografia",    label: "Mamografia",                 href: "/farol/mamografia",     modalidadeIds: [6],              description: "Fila em tempo real" },
-  { id: "densitometria", label: "Densitometria",              href: "/farol/densitometria",  modalidadeIds: [7],              description: "Fila em tempo real" },
-  { id: "ressonancia",   label: "Ressonância Magnética",      href: "/farol/ressonancia",    modalidadeIds: [5, 16],          description: "Com e sem contraste" },
-  { id: "ecocardiograma",label: "Ecocardiograma",             href: "/farol/ecocardiograma", modalidadeIds: [10],             description: "Fila em tempo real" },
-  { id: "neurocardio",   label: "Neurocardio & Espirometria", href: "/farol/neurocardio",    modalidadeIds: [14, 15, 18, 19, 20, 21], description: "ECG, EEG, Holter, Mapa" },
+  { id: "ultrassom",     label: "Ultrassonografia",           href: "/farol/ultrassom",      modalidadeIds: [2],              description: "Fila em tempo real",     familia: "us"  },
+  { id: "radioterapia",  label: "Radiografia",                href: "/farol/radiografia",    modalidadeIds: [1],              description: "Fila em tempo real",     familia: "rx"  },
+  { id: "tomografia",    label: "Tomografia",                 href: "/farol/tomografia",     modalidadeIds: [4],              description: "Fila em tempo real",     familia: "tc"  },
+  { id: "mamografia",    label: "Mamografia",                 href: "/farol/mamografia",     modalidadeIds: [6],              description: "Fila em tempo real",     familia: "mg"  },
+  { id: "densitometria", label: "Densitometria",              href: "/farol/densitometria",  modalidadeIds: [7],              description: "Fila em tempo real",     familia: "do"  },
+  { id: "ressonancia",   label: "Ressonância Magnética",      href: "/farol/ressonancia",    modalidadeIds: [5, 16],          description: "Com e sem contraste",    familia: "rm"  },
+  { id: "ecocardiograma",label: "Ecocardiograma",             href: "/farol/ecocardiograma", modalidadeIds: [10],             description: "Fila em tempo real",     familia: "eco" },
+  { id: "neurocardio",   label: "Neurocardio & Espirometria", href: "/farol/neurocardio",    modalidadeIds: [14, 15, 18, 19, 20, 21], description: "ECG, EEG, Holter, Mapa", familia: "nc"  },
 ];
 
 const STATUS_FAROL = [13, 61, 62, 63, 64];
@@ -182,8 +187,16 @@ function FarolCard({ farol }: { farol: FarolModule }) {
   };
 
   return (
+    /* Duas arestas, dois significados: a barra de cima é ESTADO da fila
+       (normal / atenção / crítico), o rail da esquerda é IDENTIDADE do farol.
+       O Hub acaba virando a legenda da rampa — o card diz "Ultrassonografia"
+       e tem o rail teal ao lado, então a equipe aprende o par cor↔modalidade
+       aqui e reconhece na Busca. */
     <div
-      className="group flex flex-col rounded-xl border border-border bg-card shadow-card hover:shadow-card-hover transition-all duration-200 overflow-hidden"
+      className={cn(
+        railDaFamilia(farol.familia),
+        "group flex flex-col rounded-xl border border-border bg-card shadow-card hover:shadow-card-hover transition-all duration-200",
+      )}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
