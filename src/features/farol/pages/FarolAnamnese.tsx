@@ -1,20 +1,25 @@
 // =============================================================================
-// Farol da Anamnese — fila de trabalho da enfermagem (pré-RM)
+// Farol de encaminhados para exame — Ressonância
 // =============================================================================
-// Mostra quem foi encaminhado para RM e AINDA NÃO passou pela anamnese
-// (situações 13 e 64). Quando a enfermagem registra a anamnese no NetRis, o
-// paciente vira situação 61 e sai daqui sozinho.
+// Mostra os pacientes de RM que estão ENCAMINHADOS PARA EXAME. Quando a
+// enfermagem registra a anamnese no NetRis o paciente vira situação 61 e sai
+// daqui sozinho — mas a tela não é "aguardando anamnese", e sim a fila de
+// encaminhados.
 //
-// ── SÓ RM, POR DECISÃO DE 18/AGO ─────────────────────────────────────────────
-// A tela nasceu cobrindo RM e TC, porque a anamnese é etapa anterior das duas.
-// Foi pedido que a Tomografia saísse: o farol é de Ressonância. Fica o registro
-// de que isso tira da vista da enfermagem os pacientes de TC que aguardavam
-// anamnese — se essa fila fizer falta para eles, desfaz-se aqui, devolvendo
-// MODALIDADE.TOMOGRAFIA à lista abaixo.
+// ── CUIDADO COM O NOME DA SITUAÇÃO 64 ───────────────────────────────────────
+// No NetRis ela se chama "RM E TC ENCAMINHADO PARA EXAME". O "RM E TC" é parte
+// do NOME DA SITUAÇÃO — não quer dizer que esta tela mostre Tomografia. Ela
+// mostra só Ressonância. Confundir as duas coisas já custou uma ida e volta em
+// 18/ago, com a TC entrando e saindo da fila no mesmo dia.
 //
-// A situação 64 continua na lista: ela se chama "RM E TC ENCAMINHADO PARA
-// EXAME" e é como o NetRis marca também os pacientes de RM. Quem separa RM de
-// TC aqui é a modalidade, nunca a situação.
+// Quem decide o que aparece é MODALIDADES_RM abaixo: 5 e 16, nada de 4.
+//
+// ── POR QUE A 13 TAMBÉM ESTÁ NA LISTA ───────────────────────────────────────
+// Em 18/ago a situação 64 estava com ZERO atendimentos: todo mundo encaminhado
+// estava na 13 ("ENCAMINHADO"), genérica, usada por todas as modalidades.
+// Filtrar só pela 64 deixaria a tela vazia; tirar a 64 quebraria o dia em que a
+// clínica voltar a marcá-la. Não dá para saber se ela caiu em desuso —
+// farol_timestamps guarda apenas o dia corrente, não há histórico.
 //
 // O semáforo é o farol clássico do Excel (aba FAROL ATRASO): três bolas
 // empilhadas, uma acesa por vez, medindo o TRABALHO TOTAL pendente
@@ -38,13 +43,14 @@ import { useTemposExames, formatarSegundos } from "@/features/farol/services/tem
 import { MODALIDADE, SITUACAO } from "@/services/netris/client";
 import { familiaPorNomeExame } from "@/features/farol/lib/modalidades";
 
-// Anamnese atende o pipeline pré-RM (ver cabeçalho: a TC saiu em 18/ago)
-const MODALIDADES_ANAMNESE = [
+// Só Ressonância, com e sem contraste. A Tomografia NÃO entra — ver cabeçalho
+// sobre o nome da situação 64, que menciona TC e engana.
+const MODALIDADES_RM = [
   MODALIDADE.RESSONANCIA,
   MODALIDADE.RESSONANCIA_CONTRASTE,
 ];
-// Aguardando anamnese = encaminhado e ainda sem anamnese registrada
-const SITUACOES_AGUARDANDO = [SITUACAO.ENCAMINHADO_EXAME, SITUACAO.ENCAMINHADO_RM_TC];
+// Encaminhado para exame: a 13 genérica e a 64 ("RM E TC ENCAMINHADO PARA EXAME")
+const SITUACOES_ENCAMINHADO = [SITUACAO.ENCAMINHADO_EXAME, SITUACAO.ENCAMINHADO_RM_TC];
 
 // ── Farol de bolas (réplica dos shapes GREENB/YELLOWB/REDB da planilha) ──────
 function TrafficLight({ estado }: { estado: SemaforoExcel }) {
@@ -80,9 +86,9 @@ const ESTADO_TEXTO: Record<SemaforoExcel, string> = {
 export default function FarolAnamnese() {
   const navigate = useNavigate();
   const { pacientes: pacientesCrus, loading, syncing, lastSync, syncNow } =
-    useFarolRealtime(MODALIDADES_ANAMNESE, SITUACOES_AGUARDANDO);
+    useFarolRealtime(MODALIDADES_RM, SITUACOES_ENCAMINHADO);
   const { data: temposRm } = useTemposExames("RM");
-  const { data: emSala } = useEmSalaRm(MODALIDADES_ANAMNESE, true);
+  const { data: emSala } = useEmSalaRm(MODALIDADES_RM, true);
   const { data: throughput } = useModalidadeThroughput("Ressonância Magnética");
 
   const [tick, setTick] = useState(0);
@@ -144,8 +150,8 @@ export default function FarolAnamnese() {
             </Button>
             <div className="h-5 w-px bg-border shrink-0" />
             <div className="min-w-0">
-              <h1 className="text-sm font-bold text-foreground leading-tight truncate">Farol Anamnese</h1>
-              <p className="text-[10px] text-muted-foreground hidden sm:block">Aguardando anamnese · pré-RM · enfermagem</p>
+              <h1 className="text-sm font-bold text-foreground leading-tight truncate">Encaminhados para Exame</h1>
+              <p className="text-[10px] text-muted-foreground hidden sm:block">Ressonância · encaminhados para exame</p>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -189,7 +195,7 @@ export default function FarolAnamnese() {
               </p>
               <p className="text-xs md:text-sm text-muted-foreground mt-2 max-w-xl">{info.acao}</p>
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-[11px] text-muted-foreground font-mono">
-                <span>{pacientes.length} aguardando anamnese</span>
+                <span>{pacientes.length} encaminhado{pacientes.length !== 1 ? "s" : ""} para exame</span>
                 {eta && eta.pacientesEmSala > 0 && <span>{eta.pacientesEmSala} em sala</span>}
                 <span>verde ≤ 1h · amarelo ≤ 1h40 · vermelho acima</span>
               </div>
@@ -216,7 +222,7 @@ export default function FarolAnamnese() {
             ) : pacientes.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
                 <span className="text-3xl">🟢</span>
-                <p className="text-base font-medium">Ninguém aguardando anamnese</p>
+                <p className="text-base font-medium">Ninguém encaminhado para exame</p>
                 <p className="text-sm">Todos os encaminhados já passaram pela enfermagem.</p>
               </div>
             ) : (

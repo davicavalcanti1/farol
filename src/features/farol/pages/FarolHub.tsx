@@ -350,7 +350,7 @@ export default function FarolHub() {
                 className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-input bg-card text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 <ClipboardList className="h-4 w-4" />
-                Anamnese
+                Encaminhados
               </Link>
               <Link
                 to="/farol/dashboard"
