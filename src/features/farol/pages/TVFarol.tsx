@@ -201,6 +201,23 @@ function useTVFarolData(modalidadeIds: number[]): {
 
     const rows = (data ?? []) as FarolRow[];
 
+    // Ordem que a recepção salvou (farol_fila_ordem). A TV precisa seguir a
+    // MESMA ordem da tela do Farol: paciente que vê "você é o 3º" no painel e
+    // é chamado em 1º não confia mais no painel. Sem linha salva, o sort por
+    // horário logo abaixo continua valendo.
+    //
+    // A posição é lida sem filtrar por modalidade_key: a ordem é um fato do
+    // paciente no dia, e a TV agrupa por modalidade solta enquanto a tela
+    // agrupa por conjunto (RM = 5 e 16 juntas) — filtrar por chave de tela
+    // aqui devolveria vazio justamente para a RM.
+    const { data: ordemRows } = await (supabase as any)
+      .from("farol_fila_ordem")
+      .select("chave, posicao")
+      .eq("data_ref", hoje);
+    const posicaoSalva = new Map<string, number>(
+      ((ordemRows ?? []) as { chave: string; posicao: number }[]).map(r => [r.chave, r.posicao]),
+    );
+
     // Dedup por atendimento_id (mantém o mais recente)
     const porAtendimento = new Map<string, FarolRow>();
     for (const r of rows) {
@@ -243,9 +260,15 @@ function useTVFarolData(modalidadeIds: number[]): {
       porMod.get(modId)!.push(paciente);
     }
 
-    // Ordenar cada modalidade por horário asc, depois por primeiraVez
+    // Ordem salva primeiro; quem não tem posição cai no critério antigo
+    // (horário asc, depois primeiraVez) e vai para depois de quem tem.
     for (const lista of porMod.values()) {
       lista.sort((a, b) => {
+        const pa = posicaoSalva.get(a.chave);
+        const pb = posicaoSalva.get(b.chave);
+        if (pa !== undefined && pb !== undefined) return pa - pb;
+        if (pa !== undefined) return -1;
+        if (pb !== undefined) return 1;
         if (!a.horario && !b.horario) return a.primeiraVez.getTime() - b.primeiraVez.getTime();
         if (!a.horario) return 1;
         if (!b.horario) return -1;

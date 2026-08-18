@@ -2,7 +2,7 @@
 import { hojeBRT } from "@/lib/dataBRT";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { format, differenceInMinutes } from "date-fns";
-import { ArrowLeft, RefreshCw, DoorOpen, X, Clock, Stethoscope, Check, ChevronDown, Syringe } from "lucide-react";
+import { ArrowLeft, RefreshCw, DoorOpen, X, Clock, Stethoscope, Check, ChevronDown, Syringe, ArrowUp, ArrowDown, Star, ListOrdered } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -20,6 +20,14 @@ import {
   type SemaforoEstado,
 } from "@/features/farol/services/etaRm";
 import { useTemposExames, formatarSegundos } from "@/features/farol/services/temposExameService";
+import {
+  useOrdemFila, useSalvarFila, aplicarOrdemSalva, moverChave,
+} from "@/features/farol/services/ordemFila";
+import { sugerirOrdem, ordemCompletaSugerida, JANELA_PADRAO_SEG } from "@/features/farol/services/ordemSugerida";
+import {
+  classificarStatusAgendado, STATUS_AGENDADO_INFO,
+  classificarPrevisaoVsAgendado, PREVISAO_INFO,
+} from "@/features/farol/services/statusAgendado";
 import { SITUACAO } from "@/services/netris/client";
 import { LOCALIDADES, salaToLocalidade, type Localidade } from "@/features/farol/utils/localidade";
 import { MapPin } from "lucide-react";
@@ -108,6 +116,8 @@ export function FarolRealtimePage({
   const { data: temposRm } = useTemposExames("RM", previsaoPorProtocolo);
   const { data: emSala } = useEmSalaRm(modIdsArray, previsaoPorProtocolo);
   const toggleAnestesia = useToggleAnestesia();
+  const { data: ordemSalva } = useOrdemFila(modIdsArray, previsaoPorProtocolo);
+  const salvarFila = useSalvarFila(modIdsArray);
 
   const [searchParams] = useSearchParams();
   // Permite pre-filtro vindo do Hub via ?salas=sala1,sala2 (encoded)
@@ -136,17 +146,26 @@ export function FarolRealtimePage({
   // ETA por protocolo: calculada sobre a fila COMPLETA (sem filtros de sala/
   // localidade) — filtrar a visão não muda a posição real de ninguém.
   // Recalcula a cada tick (1min), sync ou mudança na tabela de tempos.
+  // Ordem efetiva da fila. O que o operador salvou vence o horário agendado —
+  // e precisa ser aplicado ANTES do cálculo de ETA, porque o motor soma os
+  // ciclos "de quem está na frente": ordem errada, previsão errada pra todos
+  // que vêm abaixo.
+  const fila = useMemo(
+    () => aplicarOrdemSalva(pacientes, ordemSalva),
+    [pacientes, ordemSalva],
+  );
+
   const etaRm = useMemo(() => {
     if (!previsaoPorProtocolo || !temposRm || temposRm.length === 0) return null;
     return calcularEtasRm({
-      pacientes,
+      pacientes: fila,
       tempos: temposRm,
       emSala: emSala ?? [],
       fallbackMin: duracaoEstimadaMin,
       agora: new Date(),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [previsaoPorProtocolo, temposRm, emSala, pacientes, duracaoEstimadaMin, tick]);
+  }, [previsaoPorProtocolo, temposRm, emSala, fila, duracaoEstimadaMin, tick]);
 
   const salas = [...new Set(
     pacientes.flatMap(p => p.exames.map(e => e.sala).filter(Boolean))
@@ -160,7 +179,7 @@ export function FarolRealtimePage({
 
   // Filtros se combinam com AND: paciente precisa passar nos dois.
   // Empty Set em qualquer um = sem filtro daquela dimensão.
-  const visiveis = pacientes.filter(p => {
+  const visiveis = fila.filter(p => {
     if (selectedSalas.size > 0 && !p.exames.some(e => e.sala && selectedSalas.has(e.sala))) {
       return false;
     }
@@ -192,6 +211,114 @@ export function FarolRealtimePage({
   const limparLocalidades = () => setSelectedLocalidades(new Set());
 
   const now = new Date();
+
+  // ── Ordem da fila (porte dos botões de mover linha do farol Excel) ─────────
+  // Com filtro de sala/localidade ligado, mover esconde o efeito: o vizinho da
+  // troca pode estar fora da visão. Desabilitar e dizer o porquê é melhor que
+  // um clique que parece não fazer nada.
+  const filtroAtivo = selectedSalas.size > 0 || selectedLocalidades.size > 0;
+  const prioridadeDe = (chave: string) => ordemSalva?.get(chave)?.prioritario ?? false;
+
+  const persistirOrdem = async (chaves: string[], prioridades?: Map<string, boolean>) => {
+    try {
+      await salvarFila.mutateAsync(
+        chaves.map(c => ({ chave: c, prioritario: prioridades?.get(c) ?? prioridadeDe(c) })),
+      );
+    } catch (e: any) {
+      toast.error("Não foi possível salvar a ordem da fila", { description: e?.message });
+    }
+  };
+
+  const mover = (chave: string, direcao: -1 | 1) =>
+    persistirOrdem(moverChave(fila.map(p => p.chave), chave, direcao));
+
+  const alternarPrioritario = (chave: string) => {
+    const mapa = new Map(fila.map(p => [p.chave, prioridadeDe(p.chave)]));
+    mapa.set(chave, !prioridadeDe(chave));
+    return persistirOrdem(fila.map(p => p.chave), mapa);
+  };
+
+  const aplicarSugestao = async () => {
+    const sugestao = sugerirOrdem(
+      fila.map(p => ({
+        chave: p.chave,
+        horarioAgendado: p.horarioAgendamento,
+        // Sem ciclo por protocolo (exame não cadastrado em /farol/tempos) cai na
+        // média da modalidade — mesmo fallback que o motor de ETA usa.
+        duracaoSeg: etaRm?.porChave.get(p.chave)?.cicloSeg ?? duracaoEstimadaMin * 60,
+        prioritario: prioridadeDe(p.chave),
+      })),
+      new Date(),
+    );
+    await persistirOrdem(ordemCompletaSugerida(sugestao));
+    toast.success(
+      `Ordem sugerida aplicada: ${sugestao.dentroDaJanela.length} paciente(s) em ${formatarSegundos(sugestao.totalSeg)}`,
+      {
+        description: sugestao.foraDaJanela.length > 0
+          ? `${sugestao.foraDaJanela.length} ficaram fora da primeira hora e foram pro fim da fila.`
+          : undefined,
+      },
+    );
+  };
+
+  // Controles por linha. Função e não componente de propósito: um componente
+  // declarado aqui dentro remontaria a cada render da página.
+  const controlesOrdem = (chave: string, compacto = false) => {
+    if (!previsaoPorProtocolo) return null;
+    const i = fila.findIndex(x => x.chave === chave);
+    const prio = prioridadeDe(chave);
+    const box = "flex items-center justify-center rounded border border-border bg-card text-muted-foreground hover:bg-muted disabled:opacity-25 disabled:hover:bg-card";
+    const dim = compacto ? "h-4 w-4" : "h-5 w-5";
+    const ico = compacto ? "h-2.5 w-2.5" : "h-3 w-3";
+    const travado = filtroAtivo || salvarFila.isPending;
+    const motivo = filtroAtivo ? "Limpe os filtros de sala/localidade para reordenar a fila" : "";
+    return (
+      <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
+        <button
+          type="button"
+          className={cn(box, dim)}
+          disabled={travado || i <= 0}
+          title={motivo || "Subir na fila"}
+          onClick={() => mover(chave, -1)}
+        >
+          <ArrowUp className={ico} />
+        </button>
+        <button
+          type="button"
+          className={cn(box, dim)}
+          disabled={travado || i < 0 || i >= fila.length - 1}
+          title={motivo || "Descer na fila"}
+          onClick={() => mover(chave, 1)}
+        >
+          <ArrowDown className={ico} />
+        </button>
+        <button
+          type="button"
+          className={cn(box, dim, prio && "bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-100")}
+          disabled={salvarFila.isPending}
+          title={prio ? "Prioritário — clique para desmarcar" : "Marcar como prioritário (entra antes na ordem sugerida)"}
+          onClick={() => alternarPrioritario(chave)}
+        >
+          <Star className={cn(ico, prio && "fill-current")} />
+        </button>
+      </div>
+    );
+  };
+
+  const chipStatusAgendado = (p: FarolPaciente, compacto = false) => {
+    if (!previsaoPorProtocolo) return null;
+    const s = classificarStatusAgendado(p.horarioAgendamento, now);
+    if (!s) return null;
+    const info = STATUS_AGENDADO_INFO[s];
+    return (
+      <span
+        className={cn("rounded border px-1.5 py-0.5 text-[10px] font-semibold", info.chip)}
+        title={`Agendado × agora: ${info.rotulo}`}
+      >
+        {compacto ? info.curto : info.rotulo}
+      </span>
+    );
+  };
 
   // ── Dar baixa ───────────────────────────────────────────────────────────────
 
@@ -283,6 +410,18 @@ export function FarolRealtimePage({
         ? "Por protocolo — inclui exame SEM protocolo cadastrado (usou média da modalidade)"
         : "Por protocolo: agora + restante de quem está em sala + ciclos de quem está na frente"
       : `Estimativa baseada em ${throughput?.diasComDados ?? 0} dias de histórico (${duracaoEstimadaMin}min/exame)`;
+    // Previsão × agendado (porte de AnalisarHorarios): a cor responde "a fila
+    // vai conseguir atender perto da hora marcada?", pergunta diferente da que
+    // o chip de status responde ("o paciente chegou antes ou depois da hora?").
+    const previsaoCor = previsaoPorProtocolo
+      ? classificarPrevisaoVsAgendado(eta, p.horarioAgendamento)
+      : null;
+    const etaChip = previsaoCor
+      ? PREVISAO_INFO[previsaoCor].chip
+      : "bg-sky-50 text-sky-700 border-sky-200";
+    const etaTitleFull = previsaoCor
+      ? `${etaTitle} · ${PREVISAO_INFO[previsaoCor].titulo}`
+      : etaTitle;
 
     return (
       <div
@@ -296,6 +435,7 @@ export function FarolRealtimePage({
             <div className="flex flex-col items-center gap-1 pt-0.5 shrink-0">
               <span className="font-mono text-xs font-bold text-muted-foreground">{index}</span>
               <span className={`h-2.5 w-2.5 rounded-full ${c.dot}`} />
+              {controlesOrdem(p.chave, true)}
             </div>
             <div className="flex-1 min-w-0">
               <p className={`font-bold text-sm leading-tight truncate ${c.name}`}>
@@ -311,6 +451,7 @@ export function FarolRealtimePage({
                 {p.horarioAgendamento && (
                   <span className="text-[11px] text-muted-foreground font-mono">{p.horarioAgendamento}</span>
                 )}
+                {chipStatusAgendado(p, true)}
                 {p.salaAgrupada && (
                   <span className="text-[11px] bg-blue-50 border border-blue-100 text-blue-600 rounded px-1.5 py-0.5">{p.salaAgrupada}</span>
                 )}
@@ -334,9 +475,9 @@ export function FarolRealtimePage({
                   <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border bg-violet-50 text-violet-700 border-violet-200">{formatarSegundos(infoRm.cicloSeg)}</span>
                 </div>
               )}
-              <div className="flex flex-col items-end gap-0.5" title={etaTitle}>
+              <div className="flex flex-col items-end gap-0.5" title={etaTitleFull}>
                 <span className="text-[9px] text-muted-foreground">previsão</span>
-                <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border bg-sky-50 text-sky-700 border-sky-200">{etaLabel}</span>
+                <span className={cn("font-mono font-bold text-xs px-2 py-0.5 rounded border", etaChip)}>{etaLabel}</span>
               </div>
             </div>
           </div>
@@ -347,6 +488,7 @@ export function FarolRealtimePage({
           <div className="col-span-1 flex flex-col items-center gap-1">
             <span className="font-mono text-sm font-bold text-muted-foreground">{index}</span>
             <span className={`h-2.5 w-2.5 rounded-full ${c.dot}`} />
+            {controlesOrdem(p.chave)}
           </div>
           <div className="col-span-3">
             <p className={`text-sm font-semibold truncate ${c.name}`}>
@@ -366,6 +508,9 @@ export function FarolRealtimePage({
           </div>
           <div className="col-span-1 text-sm text-muted-foreground font-mono">
             {p.horarioAgendamento ?? <span className="text-muted-foreground/30">—</span>}
+            {chipStatusAgendado(p, true) && (
+              <div className="mt-0.5">{chipStatusAgendado(p, true)}</div>
+            )}
           </div>
           <div className="col-span-1">
             {p.salaAgrupada
@@ -388,9 +533,9 @@ export function FarolRealtimePage({
                 <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border bg-violet-50 text-violet-700 border-violet-200">{formatarSegundos(infoRm.cicloSeg)}</span>
               </div>
             )}
-            <div className="flex items-center gap-1" title={etaTitle}>
+            <div className="flex items-center gap-1" title={etaTitleFull}>
               <span className="text-[10px] text-muted-foreground">previsão</span>
-              <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border bg-sky-50 text-sky-700 border-sky-200">{etaLabel}</span>
+              <span className={cn("font-mono font-bold text-xs px-2 py-0.5 rounded border", etaChip)}>{etaLabel}</span>
             </div>
           </div>
         </div>
@@ -416,6 +561,21 @@ export function FarolRealtimePage({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {previsaoPorProtocolo && fila.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs gap-1.5 px-2.5"
+                onClick={aplicarSugestao}
+                disabled={salvarFila.isPending || filtroAtivo}
+                title={filtroAtivo
+                  ? "Limpe os filtros de sala/localidade para reordenar a fila"
+                  : `Reordena pelo critério do farol Excel: atrasados, depois prioritários, depois exames mais curtos — preenchendo ${formatarSegundos(JANELA_PADRAO_SEG)} de janela.`}
+              >
+                <ListOrdered className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="hidden sm:inline">Sugerir ordem</span>
+              </Button>
+            )}
             {etaRm && (
               <div
                 className={`flex items-center gap-1.5 h-8 px-2.5 rounded-md border text-xs font-semibold ${SEMAFORO_CHIP[etaRm.semaforo]}`}
