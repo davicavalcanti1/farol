@@ -1,10 +1,9 @@
 // =============================================================================
 // Farol de encaminhados para exame — Ressonância
 // =============================================================================
-// Mostra os pacientes de RM que estão ENCAMINHADOS PARA EXAME. Quando a
-// enfermagem registra a anamnese no NetRis o paciente vira situação 61 e sai
-// daqui sozinho — mas a tela não é "aguardando anamnese", e sim a fila de
-// encaminhados.
+// Mostra a fila de Ressonância até o exame: encaminhados, e também quem já
+// passou pela anamnese e pelo preparo e está esperando a sala. Mesmo conjunto
+// de pacientes do Farol RM (/farol/ressonancia) — o que muda é a apresentação.
 //
 // ── CUIDADO COM O NOME DA SITUAÇÃO 64 ───────────────────────────────────────
 // No NetRis ela se chama "RM E TC ENCAMINHADO PARA EXAME". O "RM E TC" é parte
@@ -49,8 +48,21 @@ const MODALIDADES_RM = [
   MODALIDADE.RESSONANCIA,
   MODALIDADE.RESSONANCIA_CONTRASTE,
 ];
-// Encaminhado para exame: a 13 genérica e a 64 ("RM E TC ENCAMINHADO PARA EXAME")
-const SITUACOES_ENCAMINHADO = [SITUACAO.ENCAMINHADO_EXAME, SITUACAO.ENCAMINHADO_RM_TC];
+// A fila inteira até o exame — as MESMAS situações do Farol RM
+// (/farol/ressonancia). Antes esta tela levava só as duas de "encaminhado"
+// (13 e 64) e por isso mostrava menos gente: em 18/ago eram 3 aqui contra 8 lá,
+// e os 5 de diferença eram justamente quem já tinha passado da anamnese e do
+// preparo. Como as duas telas devem falar da mesma fila, a lista foi igualada.
+//
+// O que separa as duas agora é só a apresentação: aqui o farol de bolas grande
+// da aba FAROL ATRASO da planilha; lá a tabela com ordem manual, status e ETA.
+const SITUACOES_ENCAMINHADO = [
+  SITUACAO.ENCAMINHADO_EXAME,
+  SITUACAO.ANAMNESE,
+  SITUACAO.PACIENTE_PREPARADO,
+  SITUACAO.PREPARADO_ENFERMAGEM,
+  SITUACAO.ENCAMINHADO_RM_TC,
+];
 
 // ── Farol de bolas (réplica dos shapes GREENB/YELLOWB/REDB da planilha) ──────
 function TrafficLight({ estado }: { estado: SemaforoExcel }) {
