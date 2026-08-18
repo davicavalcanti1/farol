@@ -32,7 +32,7 @@ import { SITUACAO } from "@/services/netris/client";
 import { LOCALIDADES, salaToLocalidade, type Localidade } from "@/features/farol/utils/localidade";
 import { MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { railDe, chipDe, modalidadeDe } from "@/features/farol/lib/modalidades";
+import { railDe, chipDe, modalidadeDe, familiaPorNomeExame, LABEL_FAMILIA, type FamiliaModalidade } from "@/features/farol/lib/modalidades";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -81,6 +81,12 @@ interface Props {
    * + semáforo de fila do farol Excel). Hoje só a Ressonância usa.
    */
   previsaoPorProtocolo?: boolean;
+  /**
+   * Família que esta tela aceita. Exame cujo NOME é de outra família não
+   * entra na fila, mesmo que o NetRis o tenha marcado com a modalidade
+   * desta. Sem a prop, nada é filtrado (comportamento de antes).
+   */
+  familiaEsperada?: FamiliaModalidade;
 }
 
 const SEMAFORO_CHIP: Record<SemaforoEstado, string> = {
@@ -98,6 +104,7 @@ export function FarolRealtimePage({
   situacaoIds = [SITUACAO.ENCAMINHADO_EXAME],
   modalidadesInfo,
   previsaoPorProtocolo = false,
+  familiaEsperada,
 }: Props) {
   const navigate  = useNavigate();
   const { tenant, profile } = useAuth();
@@ -146,13 +153,38 @@ export function FarolRealtimePage({
   // ETA por protocolo: calculada sobre a fila COMPLETA (sem filtros de sala/
   // localidade) — filtrar a visão não muda a posição real de ninguém.
   // Recalcula a cada tick (1min), sync ou mudança na tabela de tempos.
+  // ── Exame de outra família não entra ──────────────────────────────────────
+  // O Farol RM é só de Ressonância, mas o `idModalidade` do NetRis colocou
+  // procedimentos de TC aqui dentro. Como o ETA é cumulativo, cada intruso
+  // ainda somava um ciclo inventado (não há protocolo de TC na tabela da RM,
+  // então caía no fallback de 20min) e empurrava a previsão de todo mundo
+  // abaixo. Filtrar pelo nome corta o problema na entrada.
+  const { pacientesDaFamilia, exameForasteiros } = useMemo(() => {
+    if (!familiaEsperada) return { pacientesDaFamilia: pacientes, exameForasteiros: [] as string[] };
+    const forasteiros: string[] = [];
+    const mantidos: FarolPaciente[] = [];
+    for (const p of pacientes) {
+      const meus = p.exames.filter(e => {
+        const f = familiaPorNomeExame(e.nome);
+        // `null` = nome não identifica família nenhuma. Fica: fazer paciente
+        // sumir da fila é falha pior que mostrar um exame a mais.
+        if (f === null || f === familiaEsperada) return true;
+        forasteiros.push(e.nome);
+        return false;
+      });
+      if (meus.length === p.exames.length) mantidos.push(p);
+      else if (meus.length > 0) mantidos.push({ ...p, exames: meus });
+    }
+    return { pacientesDaFamilia: mantidos, exameForasteiros: forasteiros };
+  }, [pacientes, familiaEsperada]);
+
   // Ordem efetiva da fila. O que o operador salvou vence o horário agendado —
   // e precisa ser aplicado ANTES do cálculo de ETA, porque o motor soma os
   // ciclos "de quem está na frente": ordem errada, previsão errada pra todos
   // que vêm abaixo.
   const fila = useMemo(
-    () => aplicarOrdemSalva(pacientes, ordemSalva),
-    [pacientes, ordemSalva],
+    () => aplicarOrdemSalva(pacientesDaFamilia, ordemSalva),
+    [pacientesDaFamilia, ordemSalva],
   );
 
   const etaRm = useMemo(() => {
@@ -168,13 +200,13 @@ export function FarolRealtimePage({
   }, [previsaoPorProtocolo, temposRm, emSala, fila, duracaoEstimadaMin, tick]);
 
   const salas = [...new Set(
-    pacientes.flatMap(p => p.exames.map(e => e.sala).filter(Boolean))
+    pacientesDaFamilia.flatMap(p => p.exames.map(e => e.sala).filter(Boolean))
   )].sort() as string[];
 
   // Localidades efetivamente presentes nos pacientes atuais — só mostra checkbox
   // pra localidades que existem na fila, evita "Anexo (0)" quando não tem ninguém.
   const localidadesPresentes = [...new Set(
-    pacientes.flatMap(p => p.exames.map(e => salaToLocalidade(e.sala)))
+    pacientesDaFamilia.flatMap(p => p.exames.map(e => salaToLocalidade(e.sala)))
   )].sort() as Localidade[];
 
   // Filtros se combinam com AND: paciente precisa passar nos dois.
@@ -419,6 +451,19 @@ export function FarolRealtimePage({
     const etaChip = previsaoCor
       ? PREVISAO_INFO[previsaoCor].chip
       : "bg-sky-50 text-sky-700 border-sky-200";
+    // Ciclo que veio do fallback (exame sem protocolo em /farol/tempos) não
+    // pode parecer medido. No Excel a célula equivalente ficava AMARELA e a
+    // macro exigia escolha manual; aqui o número é exibido com "≈" e em âmbar,
+    // porque ele entra na soma cumulativa e desloca a previsão de quem vem
+    // depois.
+    const cicloChutado = !!infoRm?.usouFallback;
+    const cicloChip = cicloChutado
+      ? "bg-amber-100 text-amber-900 border-amber-400"
+      : "bg-violet-50 text-violet-700 border-violet-200";
+    const cicloLabel = infoRm ? `${cicloChutado ? "≈" : ""}${formatarSegundos(infoRm.cicloSeg)}` : "";
+    const cicloTitle = cicloChutado
+      ? `Chute: exame sem protocolo cadastrado em /farol/tempos — usando a média da modalidade (${duracaoEstimadaMin}min por exame). Este tempo entra na soma e empurra a previsão de todos abaixo na fila.`
+      : "Soma dos protocolos dos exames do paciente (+ adicional de anestesia, quando marcada)";
     const etaTitleFull = previsaoCor
       ? `${etaTitle} · ${PREVISAO_INFO[previsaoCor].titulo}`
       : etaTitle;
@@ -472,7 +517,7 @@ export function FarolRealtimePage({
               {infoRm && (
                 <div className="flex flex-col items-end gap-0.5">
                   <span className="text-[9px] text-muted-foreground">ciclo</span>
-                  <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border bg-violet-50 text-violet-700 border-violet-200">{formatarSegundos(infoRm.cicloSeg)}</span>
+                  <span className={cn("font-mono font-bold text-xs px-2 py-0.5 rounded border", cicloChip)} title={cicloTitle}>{cicloLabel}</span>
                 </div>
               )}
               <div className="flex flex-col items-end gap-0.5" title={etaTitleFull}>
@@ -530,7 +575,7 @@ export function FarolRealtimePage({
             {infoRm && (
               <div className="flex items-center gap-1">
                 <span className="text-[10px] text-muted-foreground">ciclo</span>
-                <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border bg-violet-50 text-violet-700 border-violet-200">{formatarSegundos(infoRm.cicloSeg)}</span>
+                <span className={cn("font-mono font-bold text-xs px-2 py-0.5 rounded border", cicloChip)} title={cicloTitle}>{cicloLabel}</span>
               </div>
             )}
             <div className="flex items-center gap-1" title={etaTitleFull}>
@@ -657,7 +702,7 @@ export function FarolRealtimePage({
                   </div>
                   {selectedSalas.size > 0 && (
                     <div className="px-3 py-2 border-t bg-muted/40 text-[11px] text-muted-foreground">
-                      Mostrando {visiveis.length} de {pacientes.length} pacientes
+                      Mostrando {visiveis.length} de {pacientesDaFamilia.length} pacientes
                     </div>
                   )}
                 </PopoverContent>
@@ -684,6 +729,19 @@ export function FarolRealtimePage({
 
         {/* Tabela */}
         <main className="flex-1 p-2 md:p-4 overflow-y-auto space-y-4">
+          {exameForasteiros.length > 0 && (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              <span className="font-semibold">
+                {exameForasteiros.length} exame{exameForasteiros.length !== 1 ? "s" : ""} de outra modalidade
+                {" "}fora desta fila:
+              </span>{" "}
+              {[...new Set(exameForasteiros)].join(" · ")}
+              <span className="block mt-0.5 text-amber-800/80">
+                Estão cadastrados no NetRis com a modalidade da {LABEL_FAMILIA[familiaEsperada ?? "none"]} —
+                corrigir o idModalidade lá é o conserto de raiz.
+              </span>
+            </div>
+          )}
           {loading ? (
             <div className="bg-card rounded-xl border border-border shadow-card flex items-center justify-center py-16 text-muted-foreground gap-2">
               <RefreshCw className="h-5 w-5 animate-spin" />

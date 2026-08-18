@@ -7,6 +7,7 @@ export default function FarolRessonancia() {
       modalidadeId={[MODALIDADE.RESSONANCIA, MODALIDADE.RESSONANCIA_CONTRASTE]}
       title="Ressonância Magnética"
       previsaoPorProtocolo
+      familiaEsperada="rm"
       situacaoIds={[
         SITUACAO.ENCAMINHADO_EXAME,
         SITUACAO.ANAMNESE,

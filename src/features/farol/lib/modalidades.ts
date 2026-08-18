@@ -117,6 +117,73 @@ const CLASSE_CHIP: Record<FamiliaModalidade, string> = {
   none: "chip-modality chip-none",
 };
 
+
+/* ── Família pelo NOME do exame ──────────────────────────────────────────────
+   O `idModalidade` do NetRis não é confiável para decidir de qual fila o exame
+   é: existe procedimento de Tomografia cadastrado lá com a modalidade da
+   Ressonância, e foi assim que "TC ABDOME TOTAL" e "TC COLUNA CERVICAL"
+   apareceram na fila do Farol RM em 18/ago. A correção de raiz é no cadastro do
+   NetRis; enquanto ela não vem, a tela se defende olhando o nome.
+
+   Os prefixos são casados SEM normalizar acento de propósito: "RM", "TC",
+   "USG", "MMG" não têm acento, e as formas por extenso ganham classe de
+   caractere ("RESSON[AÂ]NCIA"). Evita arrastar o normalizador de
+   temposExameService — que traz o react-query junto — para dentro deste módulo,
+   que é importado até pela TV.
+
+   Devolve `null` quando o nome não identifica família nenhuma. Quem filtra deve
+   tratar `null` como "fica": sumir com paciente da fila é falha muito pior que
+   mostrar um exame a mais. */
+/* Três camadas, nesta ordem, porque a primeira é a mais confiável e a última é
+   a que mais arrisca falso positivo:
+
+     1. PREFIXO   "RM ...", "TC ...", "ANGIO RM ...", "USG ..." — o formato da
+                  esmagadora maioria dos procedimentos do NetRis.
+     2. POR EXTENSO em qualquer posição: "ENTERO RESSONÂNCIA" é RM e não começa
+                  com RM nenhum. Só roda depois da camada 1 para que um exame
+                  batizado "TC ... COMPARATIVO COM RESSONANCIA" continue sendo TC.
+     3. SIGLA SOLTA em qualquer posição: "ENTEROGRAFIA POR RM". Último recurso.
+
+   Sem a camada 2, "ENTERO RESSONÂNCIA" caía em `null` — não sumia da fila (o
+   nulo é tratado como "fica"), mas ficava dependendo da rede de segurança em vez
+   de ser reconhecido. */
+const PREFIXO_DA_FAMILIA: [FamiliaModalidade, RegExp][] = [
+  ["rm",  /^\s*(ANGIO\s*)?RM\b/i],
+  ["tc",  /^\s*(ANGIO\s*)?TC\b/i],
+  ["us",  /^\s*(USG?\b|ULTRASSON)/i],
+  ["mg",  /^\s*(MMG?\b|MAMOGRAFIA\b)/i],
+  ["do",  /^\s*(DO\b|DENSITOMETRIA\b)/i],
+  ["eco", /^\s*(ECOCARDIO|ECO\b)/i],
+  ["nc",  /^\s*(EEG\b|ECG\b|ELETROENCEFALO|ELETROCARDIO|HOLTER\b|MAPA\b|ESPIROMETRIA\b)/i],
+  ["rx",  /^\s*(RX\b|RAIO)/i],
+];
+
+const EXTENSO_DA_FAMILIA: [FamiliaModalidade, RegExp][] = [
+  ["rm",  /RESSON[A\u00c2]NCIA/i],
+  ["tc",  /TOMOGRAFIA/i],
+  ["us",  /ULTRASSON/i],
+  ["mg",  /MAMOGRAFIA/i],
+  ["do",  /DENSITOMETRIA/i],
+  ["eco", /ECOCARDIO/i],
+  ["nc",  /ELETROENCEFALO|ELETROCARDIO/i],
+];
+
+const SIGLA_SOLTA_DA_FAMILIA: [FamiliaModalidade, RegExp][] = [
+  ["rm", /\bRM\b/i],
+  ["tc", /\bTC\b/i],
+];
+
+export function familiaPorNomeExame(nome?: string | null): FamiliaModalidade | null {
+  const n = (nome ?? "").trim();
+  if (!n) return null;
+  for (const camada of [PREFIXO_DA_FAMILIA, EXTENSO_DA_FAMILIA, SIGLA_SOLTA_DA_FAMILIA]) {
+    for (const [familia, padrao] of camada) {
+      if (padrao.test(n)) return familia;
+    }
+  }
+  return null;
+}
+
 /** Classes do rail para a linha/card deste atendimento. Ver .rail em core.css. */
 export function railDe(modalidadeId?: number | null): string {
   return CLASSE_RAIL[modalidadeDe(modalidadeId).familia];
