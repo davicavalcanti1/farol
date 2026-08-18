@@ -9,6 +9,15 @@
 // posição, e quem tem posição sempre vem antes de quem não tem — mover um
 // paciente jogaria todos os outros para o fim. É por isso que `salvarFila`
 // recebe a lista completa e não um par (chave, posição).
+//
+// E o invariante só se sustenta se as linhas de quem SAIU da fila forem
+// apagadas. Sem isso: o paciente recebe baixa, os presentes são renumerados
+// 0..n-2, e a linha órfã fica com a posição antiga — apareceram duas linhas
+// na posição 1 já no primeiro dia de uso (18/ago). Enquanto o paciente estiver
+// fora da fila a órfã é inofensiva (ninguém a lê), mas se ele voltar — troca de
+// situação, baixa desfeita — passam a existir dois presentes com a mesma
+// posição, e o desempate vira a ordem de chegada da consulta, não a que
+// alguém escolheu.
 // =============================================================================
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -83,6 +92,28 @@ export function useSalvarFila(modalidadeIds: number[]) {
       // lançar, e engolir aqui deixaria a tela mostrando uma ordem que o banco
       // nunca aceitou — o mesmo padrão que já mordeu os toggles de permissão.
       if (error) throw error;
+
+      // Apaga as órfãs: linhas desta tela, deste dia, de quem não está mais na
+      // fila. Roda DEPOIS do upsert de propósito — se ela falhar, o pior caso é
+      // sobrar órfã (o comportamento de antes), enquanto apagar primeiro e falhar
+      // no upsert perderia a ordem inteira.
+      //
+      // Aspas duplas em cada valor porque a chave pode ser o NOME do paciente
+      // (quando o cadastro do NetRis não tem CPF) e nome tem espaço.
+      if (fila.length > 0) {
+        const lista = fila.map(f => `"${f.chave.replace(/"/g, "")}"`).join(",");
+        const { error: errLimpeza } = await (supabase as any)
+          .from("farol_fila_ordem")
+          .delete()
+          .eq("tenant_id", tenant.id)
+          .eq("data_ref", hojeBRT())
+          .eq("modalidade_key", key)
+          .not("chave", "in", `(${lista})`);
+        // Falha aqui não invalida a ordem que acabou de ser gravada, então não
+        // sobe como erro — mas não pode passar em silêncio, senão a duplicata
+        // volta a acumular sem ninguém saber.
+        if (errLimpeza) console.warn("[ordemFila] ordem salva, mas a limpeza das linhas órfãs falhou:", errLimpeza);
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: [QUERY_KEY] }),
   });
