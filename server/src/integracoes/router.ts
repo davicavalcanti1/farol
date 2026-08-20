@@ -130,6 +130,23 @@ export function criarRouterIntegracao<R extends RoteadorLike>(opcoes: OpcoesRout
       origem: estado.origem,
       utilizavel: estado.utilizavel,
       atualizadoEm: estado.atualizadoEm,
+      /**
+       * Quais campos TÊM valor no ambiente agora — booleano, nunca o valor.
+       *
+       * Existe por causa de um problema real, registrado no board do check-in:
+       * as `NETRIS_*` foram removidas do EasyPanel depois que o painel passou a
+       * ser a fonte, e desde então **desligar o switch derruba o módulo** em vez
+       * de voltar ao ambiente. O painel dizia "só continua de pé se elas ainda
+       * existirem", sem saber se existiam.
+       *
+       * `origem` não responde isso: ela diz quem GANHOU, não se existe reserva.
+       * Campo com origem "painel" pode ou não ter variável de ambiente atrás, e
+       * a diferença é justamente entre desligar em segurança e derrubar a
+       * recepção. Só o servidor sabe, então é o servidor que conta.
+       */
+      ambienteDisponivel: Object.fromEntries(
+        Object.keys(resolvedor.valoresDoAmbiente()).map(chave => [chave, true]),
+      ) as Record<string, boolean>,
     };
   }
 

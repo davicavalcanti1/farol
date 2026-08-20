@@ -4,6 +4,7 @@ import { useCarregar } from '../hooks.js';
 import { Aviso, Button, Card, Field, Input, Loading } from '../ui/index.js';
 import {
   configParaSalvar,
+  desligarDeixaSemValor,
   essenciaisFaltando,
   quando,
   rotuloOrigem,
@@ -101,7 +102,22 @@ export function clienteIntegracaoHttp(opcoes: {
   };
 }
 
-function PainelIntegracao({ cliente }: { cliente: ClienteIntegracao }) {
+/**
+ * O painel, como componente.
+ *
+ * Exportado porque metade dos adotantes **não** quer a área inteira: o check-in
+ * tem um painel próprio de quatro abas e precisa só deste cartão dentro da aba
+ * "Integração", sem o cabeçalho de página que a área desenha. Host com casca
+ * própria usa isto; host sem casca usa `criarAreaIntegracoes`.
+ */
+export function PainelIntegracoes({
+  cliente,
+  comCabecalho = true,
+}: {
+  cliente: ClienteIntegracao;
+  /** Falso quando o host já tem título de página próprio. */
+  comCabecalho?: boolean;
+}) {
   const meta = useCarregar(() => cliente.campos());
   const atual = useCarregar(() => cliente.ler());
 
@@ -128,8 +144,11 @@ function PainelIntegracao({ cliente }: { cliente: ClienteIntegracao }) {
   if (!meta.dado || !atual.dado) return null;
 
   const { fields, mask, label, descricao } = meta.dado;
-  const { origem, utilizavel, atualizadoEm } = atual.dado;
+  const { origem, utilizavel, atualizadoEm, ambienteDisponivel } = atual.dado;
   const faltando = essenciaisFaltando(fields, valores, origem);
+  /* O que desligar o switch deixaria sem valor nenhum. Vazio = desligar é
+     seguro; com item = desligar derruba, e a frase precisa dizer isso. */
+  const semRedeDeSeguranca = desligarDeixaSemValor(fields, ambienteDisponivel);
 
   async function comRecado(acao: () => Promise<void>) {
     setSalvando(true);
@@ -168,10 +187,12 @@ function PainelIntegracao({ cliente }: { cliente: ClienteIntegracao }) {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h2 className="text-2xl font-bold">{label}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{descricao}</p>
-      </header>
+      {comCabecalho && (
+        <header>
+          <h2 className="text-2xl font-bold">{label}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{descricao}</p>
+        </header>
+      )}
 
       {recado && <Aviso tom={recado.tom === 'info' ? 'info' : recado.tom === 'erro' ? 'erro' : 'sucesso'}>{recado.texto}</Aviso>}
 
@@ -209,6 +230,24 @@ function PainelIntegracao({ cliente }: { cliente: ClienteIntegracao }) {
             <Aviso tom="alerta">Preencha antes de ativar: {faltando.join(', ')}</Aviso>
           </div>
         )}
+
+        <div className="mt-4">
+          {semRedeDeSeguranca.length > 0 ? (
+            /* O caso do check-in: as variáveis saíram do EasyPanel depois que o
+               painel virou a fonte. Desligar aqui não volta a nada — derruba. */
+            <Aviso tom="erro">
+              <strong>Não desligue.</strong> Desligar faz o servidor voltar ao ambiente, e{' '}
+              {semRedeDeSeguranca.length === 1 ? 'o campo' : 'os campos'}{' '}
+              {semRedeDeSeguranca.join(', ')} não {semRedeDeSeguranca.length === 1 ? 'tem' : 'têm'}{' '}
+              valor lá. A integração ficaria fora do ar até alguém religar.
+            </Aviso>
+          ) : ambienteDisponivel ? (
+            <Aviso tom="info">
+              Desligar é seguro: o servidor volta a usar as variáveis de ambiente, que estão
+              preenchidas. O que está salvo aqui não é apagado.
+            </Aviso>
+          ) : null}
+        </div>
       </Card>
 
       <Card className="space-y-4 p-5">
@@ -288,6 +327,6 @@ export function criarAreaIntegracoes<P extends string = Papel>(
     titulo: opcoes.titulo ?? 'Integrações',
     papeis: opcoes.papeis ?? (['admin'] as unknown as P[]),
     ...(opcoes.modulo ? { modulo: opcoes.modulo } : {}),
-    render: () => <PainelIntegracao cliente={opcoes.cliente} />,
+    render: () => <PainelIntegracoes cliente={opcoes.cliente} />,
   };
 }

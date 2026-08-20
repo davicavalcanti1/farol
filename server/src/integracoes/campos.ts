@@ -136,6 +136,10 @@ export function camposPublicos(registro: RegistroProvedores, provedor: string) {
       env: envsDoCampo(f)[0] ?? "",
       secret: Boolean(f.secret),
       essencial: Boolean(f.essencial),
+      // Se existe default embutido no código. O painel precisa disto para
+      // responder "desligar a integração vai derrubar?" — um campo essencial
+      // com `padrao` sobrevive ao desligamento mesmo sem variável de ambiente.
+      temPadrao: f.padrao !== undefined && f.padrao !== "",
     })),
   };
 }

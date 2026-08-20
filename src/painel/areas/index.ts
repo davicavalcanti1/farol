@@ -4,6 +4,7 @@
 
 export {
   configParaSalvar,
+  desligarDeixaSemValor,
   essenciaisFaltando,
   podeAtivar,
   quando,
@@ -28,6 +29,7 @@ export { criarAreaVisaoGeral, type OpcoesAreaVisaoGeral } from './visaoGeral.js'
 export {
   clienteIntegracaoHttp,
   criarAreaIntegracoes,
+  PainelIntegracoes,
   type ClienteIntegracao,
   type OpcoesAreaIntegracoes,
   type ResultadoImportar,

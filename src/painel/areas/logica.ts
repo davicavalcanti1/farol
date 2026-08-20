@@ -20,6 +20,8 @@ export interface CampoPublico {
   env: string;
   secret: boolean;
   essencial: boolean;
+  /** Tem default embutido no código — sobrevive ao desligamento sem ambiente. */
+  temPadrao?: boolean;
 }
 
 export interface CamposIntegracao {
@@ -42,6 +44,14 @@ export interface RetratoIntegracao {
   origem: Record<string, Origem>;
   utilizavel: boolean;
   atualizadoEm: string | null;
+  /**
+   * Quais campos têm valor no ambiente — booleano, nunca o valor.
+   *
+   * Ausente em servidor que ainda não atualizou o núcleo. Nesse caso o painel
+   * não afirma nada sobre desligar: silêncio é melhor que um aviso errado nas
+   * duas direções.
+   */
+  ambienteDisponivel?: Record<string, boolean>;
 }
 
 /* ── Saúde ────────────────────────────────────────────────────────────────── */
@@ -147,6 +157,33 @@ export function podeAtivar(
   origem: Record<string, Origem> = {},
 ): boolean {
   return essenciaisFaltando(campos, valores, origem).length === 0;
+}
+
+/**
+ * Os campos essenciais que o desligamento deixaria sem valor nenhum.
+ *
+ * `ativo = false` faz o servidor ignorar o painel e voltar ao ambiente. Isso é
+ * um botão de pânico útil — credencial errada salva às 18h de uma sexta se
+ * desfaz com um clique — **desde que exista ambiente para onde voltar**.
+ *
+ * Não existe sempre. No check-in as `NETRIS_*` foram removidas do EasyPanel
+ * depois que o painel passou a ser a fonte, e desde então desligar o switch
+ * derrubaria o módulo. O painel avisava "só continua de pé se elas ainda
+ * existirem", sem saber se existiam — o que é o mesmo que não avisar.
+ *
+ * Devolve rótulos, para a frase ficar acionável. Lista vazia = desligar é
+ * seguro. `ambienteDisponivel` ausente (servidor com núcleo antigo) também
+ * devolve vazio: sem o dado, o painel não afirma nada.
+ */
+export function desligarDeixaSemValor(
+  campos: readonly CampoPublico[],
+  ambienteDisponivel: Record<string, boolean> | undefined,
+): string[] {
+  if (!ambienteDisponivel) return [];
+  return campos
+    .filter((c) => c.essencial)
+    .filter((c) => !ambienteDisponivel[c.key] && !c.temPadrao)
+    .map((c) => c.label);
 }
 
 /** Data legível, tolerando nulo e string que não parseia. */
