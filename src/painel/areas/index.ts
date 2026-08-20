@@ -35,3 +35,16 @@ export {
   type ResultadoImportar,
   type ResultadoTeste,
 } from './integracoes.js';
+
+export {
+  criarAreaOwner,
+  PainelEntitlements,
+  PainelSaudeProdutos,
+  type Cliente,
+  type EstadoSaude,
+  type FonteEntitlements,
+  type MapaEntitlements,
+  type ModuloDisponivel,
+  type OpcoesAreaOwner,
+  type ProdutoOwner,
+} from './owner.js';
