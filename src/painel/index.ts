@@ -13,6 +13,21 @@ export type {
 
 export { areaAtual, chavesDuplicadas, resolverNav, type ContextoNav } from './registro.js';
 export { Shell, type ShellProps } from './Shell.js';
-export { Aviso, Button, Card, Field, Input, Loading, Vazio } from './ui/index.js';
+export {
+  Aviso,
+  Button,
+  Card,
+  entradaCls,
+  Faixa,
+  Field,
+  Input,
+  Linha,
+  Loading,
+  Rotulo,
+  Selo,
+  TituloSecao,
+  Vazio,
+  type Tom,
+} from './ui/index.js';
 export { useCarregar } from './hooks.js';
 export * from './areas/index.js';
