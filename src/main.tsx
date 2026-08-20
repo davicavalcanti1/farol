@@ -26,6 +26,7 @@ const BuscaAtendimentos   = lazy(() => import("@/features/farol/pages/BuscaAtend
 const TemposExames        = lazy(() => import("@/features/farol/pages/TemposExames"));
 const FarolAnamnese       = lazy(() => import("@/features/farol/pages/FarolAnamnese"));
 const TVFarol             = lazy(() => import("@/features/farol/pages/TVFarol"));
+const Configuracoes       = lazy(() => import("@/features/farol/pages/Configuracoes"));
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/farol/busca" element={<RequireAuth><BuscaAtendimentos /></RequireAuth>} />
               <Route path="/farol/tempos" element={<RequireAuth><TemposExames /></RequireAuth>} />
               <Route path="/farol/anamnese" element={<RequireAuth><FarolAnamnese /></RequireAuth>} />
+              <Route path="/farol/configuracoes" element={<RequireAuth><Configuracoes /></RequireAuth>} />
               <Route path="*" element={<Navigate to="/farol" replace />} />
             </Routes>
           </Suspense>
