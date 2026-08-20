@@ -5,21 +5,26 @@
 import { Router } from "express";
 import { z } from "zod";
 import { getCache, setCache, redis } from "../lib/redis.js";
-import { requireAuthFromAny } from "../middleware/auth.js";
+import { exigirTenant, requireAuthFromAny } from "../middleware/auth.js";
+import { configNetris } from "../lib/integracaoNetris.js";
 import {
   fetchAtendimentosPaginados,
-  NETRIS_FILIAL,
   proxyNetrisRequest,
   proxyPacsRequest,
   patchSituacao,
 } from "../lib/netris.js";
+
+/* Todas as rotas daqui passaram a exigir tenant: a credencial do NetRis e por
+   tenant desde 20/ago, e sem saber de quem e a requisicao nao ha token para
+   usar. `exigirTenant` responde 400 com texto acionavel em vez de deixar o
+   resolvedor cair silenciosamente no ambiente e servir a credencial de outro. */
 
 const router = Router();
 
 const NETRIS_CACHE_TTL = 180; // 3 minutos
 
 // GET /api/netris/atendimentos?dataInicial=YYYY-MM-DD&dataFinal=YYYY-MM-DD&filialId=...
-router.get("/atendimentos", requireAuthFromAny, async (req, res) => {
+router.get("/atendimentos", requireAuthFromAny, exigirTenant, async (req, res) => {
   try {
     const parsed = z
       .object({
@@ -31,13 +36,19 @@ router.get("/atendimentos", requireAuthFromAny, async (req, res) => {
 
     if (!parsed.success) return res.status(400).json({ error: "Parâmetros inválidos" });
 
-    const { dataInicial, dataFinal, filialId = NETRIS_FILIAL } = parsed.data;
-    const cacheKey = `netris:atendimentos:${dataInicial}:${dataFinal}:${filialId}`;
+    const tenantId = req.usuario!.tenantId!;
+    const cfg = await configNetris(tenantId);
+
+    const { dataInicial, dataFinal, filialId = cfg.filial } = parsed.data;
+    /* O tenant entra na chave do cache. Sem ele, o primeiro que consultasse um
+       dia aqueceria o cache para TODOS os tenants, e o segundo receberia os
+       atendimentos da clinica do primeiro. */
+    const cacheKey = `netris:atendimentos:${tenantId}:${dataInicial}:${dataFinal}:${filialId}`;
 
     const cached = await getCache<unknown[]>(cacheKey);
     if (cached) return res.json({ source: "cache", data: cached });
 
-    const data = await fetchAtendimentosPaginados(dataInicial, dataFinal, filialId);
+    const data = await fetchAtendimentosPaginados(cfg, dataInicial, dataFinal, filialId);
     await setCache(cacheKey, data, NETRIS_CACHE_TTL);
     res.json({ source: "db", data });
   } catch (err: any) {
@@ -54,11 +65,12 @@ router.get("/atendimentos", requireAuthFromAny, async (req, res) => {
 // ALL /api/netris/proxy/<path do gateway> — repassa pro NetRis com o token
 // server-side. Substitui as chamadas diretas do navegador que carregavam o
 // VITE_NETRIS_TOKEN no bundle. Allowlist de prefixo/método na lib.
-router.all("/proxy/*", requireAuthFromAny, async (req, res) => {
+router.all("/proxy/*", requireAuthFromAny, exigirTenant, async (req, res) => {
   try {
     const path = (req.params as Record<string, string>)[0] ?? "";
     const query = req.originalUrl.split("?")[1] ?? "";
     const result = await proxyNetrisRequest({
+      cfg: await configNetris(req.usuario!.tenantId!),
       method: req.method,
       path,
       query,
@@ -73,11 +85,12 @@ router.all("/proxy/*", requireAuthFromAny, async (req, res) => {
 
 // GET /api/netris/pacs/<path> — proxy autenticado pro PACS (Netris-web).
 // Usado pelo histórico de situações de atendimento.
-router.get("/pacs/*", requireAuthFromAny, async (req, res) => {
+router.get("/pacs/*", requireAuthFromAny, exigirTenant, async (req, res) => {
   try {
     const path = (req.params as Record<string, string>)[0] ?? "";
     const query = req.originalUrl.split("?")[1] ?? "";
-    const result = await proxyPacsRequest({ path, query });
+    const cfg = await configNetris(req.usuario!.tenantId!);
+    const result = await proxyPacsRequest({ cfg, path, query });
     res.status(result.status).type(result.contentType).send(result.body);
   } catch (err: any) {
     console.error("[netris] pacs proxy error:", err?.message);
@@ -101,7 +114,7 @@ const OUTCOME_TO_SITUACAO: Record<string, number> = {
   em_sala:   45, // EM_SALA
 };
 
-router.post("/farol/baixa", requireAuthFromAny, async (req, res) => {
+router.post("/farol/baixa", requireAuthFromAny, exigirTenant, async (req, res) => {
   const parsed = z.object({
     atendimentoIds: z.array(z.string().regex(/^\d+$/).max(20)).min(1).max(20),
     outcome: z.enum(["realizado", "cancelado", "faltou", "em_sala"]),
@@ -113,9 +126,11 @@ router.post("/farol/baixa", requireAuthFromAny, async (req, res) => {
 
   const { atendimentoIds, outcome } = parsed.data;
   const situacaoId = OUTCOME_TO_SITUACAO[outcome];
+  const tenantId = req.usuario!.tenantId!;
+  const cfg = await configNetris(tenantId);
 
   const results = await Promise.allSettled(
-    atendimentoIds.map(id => patchSituacao(id, situacaoId))
+    atendimentoIds.map(id => patchSituacao(cfg, id, situacaoId))
   );
 
   const erros = results
@@ -129,7 +144,11 @@ router.post("/farol/baixa", requireAuthFromAny, async (req, res) => {
   // Invalida cache do dump do dia — próxima consulta vai buscar o estado novo
   try {
     const hoje = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
-    const pattern = `netris:atendimentos:${hoje}:${hoje}:*`;
+    /* O tenant tambem entra AQUI, e nao e detalhe: a chave passou a comecar
+       com o tenant, entao o padrao antigo (`...:${hoje}:${hoje}:*`) deixaria de
+       casar com qualquer chave. A invalidacao pararia de funcionar em silencio,
+       e o sintoma seria "dei baixa e o Farol nao atualizou" por 3 minutos. */
+    const pattern = `netris:atendimentos:${tenantId}:${hoje}:${hoje}:*`;
     let cursor = "0";
     do {
       const [next, keys] = await redis.scan(cursor, "MATCH", pattern, "COUNT", 100);
@@ -147,11 +166,15 @@ router.post("/farol/baixa", requireAuthFromAny, async (req, res) => {
 });
 
 // POST /api/netris/invalidate — limpa todo cache NetRis (chamar após alterar situação)
-router.post("/invalidate", requireAuthFromAny, async (req, res) => {
+router.post("/invalidate", requireAuthFromAny, exigirTenant, async (req, res) => {
   try {
+    /* Limpa so o cache do proprio tenant. Antes o padrao era global, o que com
+       um tenant so dava no mesmo; com dois, um usuario limparia o cache do
+       outro e a clinica vizinha pagaria a conta em chamadas ao NetRis. */
+    const prefixo = `netris:atendimentos:${req.usuario!.tenantId!}:*`;
     let cursor = "0", keys: string[] = [];
     do {
-      const [next, batch] = await redis.scan(cursor, "MATCH", "netris:atendimentos:*", "COUNT", 100);
+      const [next, batch] = await redis.scan(cursor, "MATCH", prefixo, "COUNT", 100);
       cursor = next; keys.push(...batch);
     } while (cursor !== "0");
     if (keys.length > 0) await redis.del(...keys);

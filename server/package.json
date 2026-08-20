@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "node --env-file=.env --import tsx/esm --watch src/index.ts",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "test": "node --import tsx/esm --test \"tests/*.test.ts\""
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",

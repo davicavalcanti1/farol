@@ -4,7 +4,7 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Radar, Timer } from "lucide-react";
+import { LogOut, Radar, Settings, Timer } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/shared/contexts/AuthContext";
@@ -18,7 +18,11 @@ interface MainLayoutProps {
 }
 
 export function MainLayout({ children, title, subtitle, eyebrow, headerActions }: MainLayoutProps) {
-  const { profile, signOut, user } = useAuth();
+  const { profile, role, signOut, user } = useAuth();
+
+  /* Mesma lista do PAPEIS_CONFIGURACAO do servidor. Aqui é só para não mostrar
+     um atalho que levaria a uma tela recusada; o gate que vale é o do Express. */
+  const podeConfigurar = role === "admin" || role === "developer";
   const navigate = useNavigate();
 
   const content = title ? (
@@ -50,6 +54,16 @@ export function MainLayout({ children, title, subtitle, eyebrow, headerActions }
           >
             <Timer className="h-4 w-4" /> Tempos
           </Button>
+          {podeConfigurar && (
+            <Button
+              variant="ghost" size="sm"
+              onClick={() => navigate("/farol/configuracoes")}
+              className="gap-1.5 text-muted-foreground"
+              title="Credenciais das integrações"
+            >
+              <Settings className="h-4 w-4" /> Configurações
+            </Button>
+          )}
           <span className="text-sm text-muted-foreground hidden sm:block">
             {profile?.full_name ?? user?.email}
           </span>

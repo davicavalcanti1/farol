@@ -48,12 +48,51 @@ npm run dev      # Vite em :5173 com proxy /api -> :3001
 Edge functions: `poll-farol-timestamps` e `snapshot-farol-whatsapp`
 (deploy via `supabase functions deploy <nome>`).
 
+## Configuração das integrações (`/farol/configuracoes`)
+
+Desde 20/ago as credenciais do NetRis **não precisam mais de redeploy**. A tela
+`/farol/configuracoes` (papel `admin` ou `developer`) grava em
+`public.farol_integracoes` por tenant, e o valor passa a valer em segundos.
+
+A precedência é **por campo**: `painel > ambiente > default do código`. Ou seja,
+as variáveis `NETRIS_*` continuam válidas como rede de segurança, e enquanto
+ninguém salvar nada no painel **nada muda** — não há janela de indisponibilidade
+ao aplicar a migration.
+
+Três coisas que valem saber:
+
+- **Desligar o switch** "Integração ativa" volta tudo ao ambiente sem apagar o
+  que está salvo. É o interruptor para credencial errada salva às 18h de uma
+  sexta.
+- **"Importar do ambiente"** copia as `NETRIS_*` para o painel e liga a
+  integração. Depois disso o painel é a fonte e as env vars podem sair do
+  EasyPanel. Rodar duas vezes não desfaz ajuste manual: campo que já tem valor
+  no painel é preservado.
+- **Se a migration não estiver aplicada**, o resolvedor degrada para o ambiente
+  e o Farol se comporta exatamente como antes. A tela é que dá erro, não a
+  operação.
+
+O núcleo vem por cópia do `imago-platform/packages/integracoes`
+(`server/src/integracoes/` — **não edite lá dentro**, use
+`node packages/integracoes/sync.mjs`). O registro de campos, que é o que a tela
+desenha, está em `server/src/lib/integracaoRegistro.ts`: campo novo é uma linha
+lá, sem migration.
+
+A tela em si vem do `@imago/painel` (`src/painel/`). Está sendo usada a **área**,
+não a casca: o Farol tem navegação própria, e trocá-la não ganharia nada hoje.
+
+```bash
+npm --prefix server test   # 7 casos sobre precedência, kill switch e degradação
+```
+
 ## Deploy (EasyPanel)
 
 Container único (Dockerfile): build do Vite + Express servindo `dist/` e a API.
 
 - Build args: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_NETRIS_FILIAL_ID`
-- Runtime env: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `NETRIS_BASE_URL`,
-  `NETRIS_TOKEN`, `NETRIS_FILIAL_ID`, `NETRIS_PACS_BASE_URL` (opcional),
+- Runtime env: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (obrigatórias) e
+  `NETRIS_BASE_URL`, `NETRIS_TOKEN`, `NETRIS_FILIAL_ID`, `NETRIS_PACS_BASE_URL`
+  — estas quatro agora são **fallback**: o painel `/farol/configuracoes` vence
+  por campo. Mantenha-as até a configuração estar salva pelo painel,
   `REDIS_URL` (opcional — sem ele o cache do dump de atendimentos usa memória
   apenas em dev; em produção configure um Redis)

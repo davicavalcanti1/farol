@@ -2,6 +2,8 @@
 // NetRis — Biblioteca de integração server-side (versão do Farol)
 //
 // Recorte da lib do sistema de origem com só o que o Farol usa:
+import type { ConfigNetris } from "./integracaoNetris.js";
+
 //   1. CONFIG      — env vars e constantes
 //   2. TRANSPORT   — fetch paginado, chunking, deduplicação
 //   3. ATENDIMENTOS — fetch + cache
@@ -13,13 +15,31 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── 1. CONFIG ────────────────────────────────────────────────────────────────
-// TOKEN e FILIAL_ID aceitam o prefixo VITE_ como fallback (mesmo valor, var diferente)
-export const NETRIS_FILIAL =
-  process.env.NETRIS_FILIAL_ID ?? process.env.VITE_NETRIS_FILIAL_ID ?? "";
+// As credenciais NAO moram mais aqui.
+//
+// Ate 20/ago este bloco era:
+//
+//     const NETRIS_TOKEN = process.env.NETRIS_TOKEN ?? "";
+//
+// Uma const no topo do modulo e avaliada UMA vez, no carregamento. Trocar a
+// variavel no EasyPanel nao tinha efeito nenhum ate o processo reiniciar - e
+// quem troca um token esta com pressa, porque o antigo venceu e o NetRis esta
+// devolvendo 401 para a recepcao inteira.
+//
+// Agora cada funcao recebe cfg, resolvido POR TENANT em lib/integracaoNetris.ts,
+// com a precedencia painel > ambiente > default e cache de 60s. As variaveis
+// NETRIS_* continuam valendo como rede de seguranca, entao nada muda enquanto
+// ninguem salvar no painel.
+//
+// NETRIS_FILIAL saiu daqui junto: a filial e campo de configuracao como os
+// outros, e as rotas leem cfg.filial.
 
-const NETRIS_BASE = process.env.NETRIS_BASE_URL ?? "";
-const NETRIS_TOKEN =
-  process.env.NETRIS_TOKEN ?? process.env.VITE_NETRIS_TOKEN ?? "";
+/* A mensagem num lugar so: ela agora precisa apontar as DUAS fontes, senao
+   manda a pessoa mexer em variavel de ambiente quando o problema esta no
+   painel. */
+const ERRO_NAO_CONFIGURADO =
+  "NetRis não configurado: preencha URL base e Token em /farol/configurações " +
+  "(ou nas variáveis NETRIS_BASE_URL / NETRIS_TOKEN).";
 
 const PAGE_SIZE = 100;
 const MAX_PAGES = 50;
@@ -81,18 +101,24 @@ function unwrapList(data: unknown): unknown[] {
 // TTL 3min é suficiente porque na clínica o dataset muda devagar.
 const ATENDIMENTOS_CACHE_TTL = 180;
 export async function fetchAtendimentosDoDiaCacheado(
+  cfg: ConfigNetris,
+  tenantId: string,
   dataInicial: string,
   dataFinal: string,
   filialId: string,
   skipCache = false,
 ): Promise<Record<string, unknown>[]> {
   const { getCache, setCache } = await import("./redis.js");
-  const cacheKey = `netris:atendimentos:${dataInicial}:${dataFinal}:${filialId}`;
+  // O tenant entra na chave porque a credencial passou a ser por tenant: sem
+  // ele, o primeiro que consulta um dia aquece o cache para TODOS, e o segundo
+  // tenant recebe os atendimentos da clinica do primeiro. Hoje ha um tenant so,
+  // e por isso isto seria invisivel; no dia do segundo seria vazamento.
+  const cacheKey = `netris:atendimentos:${tenantId}:${dataInicial}:${dataFinal}:${filialId}`;
   if (!skipCache) {
     const cached = await getCache<Record<string, unknown>[]>(cacheKey);
     if (cached) return cached;
   }
-  const data = await fetchAtendimentosPaginados(dataInicial, dataFinal, filialId);
+  const data = await fetchAtendimentosPaginados(cfg, dataInicial, dataFinal, filialId);
   await setCache(cacheKey, data as Record<string, unknown>[], ATENDIMENTOS_CACHE_TTL);
   return data as Record<string, unknown>[];
 }
@@ -100,6 +126,7 @@ export async function fetchAtendimentosDoDiaCacheado(
 // Busca todas as páginas de UM chunk de datas (loop sequencial interno).
 // Chamado tanto diretamente (intervalo curto) quanto em paralelo (intervalo longo).
 async function fetchChunkPaginado(
+  cfg:         ConfigNetris,
   dataInicial: string,
   dataFinal:   string,
   filialId:    string,
@@ -113,14 +140,14 @@ async function fetchChunkPaginado(
       dataInicial:  isoToBR(dataInicial),
       dataFinal:    isoToBR(dataFinal),
     });
-    const url = `${NETRIS_BASE}/netris/api/atendimentos?${params}`;
+    const url = `${cfg.base}/netris/api/atendimentos?${params}`;
     // Timeout de 20s por página — evita travar num chunk que nunca responde
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 20_000);
     let res: Response;
     try {
       res = await fetch(url, {
-        headers: { "Content-Type": "application/json", Authorization: NETRIS_TOKEN },
+        headers: { "Content-Type": "application/json", Authorization: cfg.token },
         signal: controller.signal,
       });
     } finally {
@@ -156,19 +183,20 @@ async function fetchChunkPaginado(
 //      janelas contíguas, mas faz a proteção por segurança).
 //   4. Intervalo curto (≤ CHUNK_DAYS) vai direto sem overhead de deduplicação.
 export async function fetchAtendimentosPaginados(
+  cfg:         ConfigNetris,
   dataInicial: string,
   dataFinal:   string,
   filialId:    string,
 ): Promise<unknown[]> {
-  if (!NETRIS_BASE || !NETRIS_TOKEN) {
-    throw new Error("NetRis não configurado no servidor (NETRIS_BASE_URL / NETRIS_TOKEN ausentes)");
+  if (!cfg.utilizavel) {
+    throw new Error(ERRO_NAO_CONFIGURADO);
   }
 
   const chunks = chunkDateRange(dataInicial, dataFinal, CHUNK_DAYS);
 
   // Intervalo curto — caminho simples sem overhead
   if (chunks.length === 1) {
-    return fetchChunkPaginado(dataInicial, dataFinal, filialId);
+    return fetchChunkPaginado(cfg, dataInicial, dataFinal, filialId);
   }
 
   console.info("[netris-lib] fetchAtendimentosPaginados: intervalo longo, usando chunks paralelos", {
@@ -185,7 +213,7 @@ export async function fetchAtendimentosPaginados(
   for (let i = 0; i < chunks.length; i += CHUNK_CONCURRENCY) {
     const lote = chunks.slice(i, i + CHUNK_CONCURRENCY);
     const resultados = await Promise.all(
-      lote.map(c => fetchChunkPaginado(c.start, c.end, filialId)),
+      lote.map(c => fetchChunkPaginado(cfg, c.start, c.end, filialId)),
     );
     for (const items of resultados) {
       for (const item of items) {
@@ -213,16 +241,17 @@ export async function fetchAtendimentosPaginados(
 // ── 7. OPERAÇÕES CLÍNICAS ────────────────────────────────────────────────────
 /** PATCH /netris/api/atendimentos/{id}/alterar-situacao */
 export async function patchSituacao(
+  cfg: ConfigNetris,
   atendimentoId: string,
   idSituacao: number
 ): Promise<{ status: number; ok: boolean; body: unknown }> {
-  if (!NETRIS_BASE || !NETRIS_TOKEN) {
-    throw new Error("NetRis não configurado no servidor");
+  if (!cfg.utilizavel) {
+    throw new Error(ERRO_NAO_CONFIGURADO);
   }
-  const url = `${NETRIS_BASE}/netris/api/atendimentos/${encodeURIComponent(atendimentoId)}/alterar-situacao`;
+  const url = `${cfg.base}/netris/api/atendimentos/${encodeURIComponent(atendimentoId)}/alterar-situacao`;
   const res = await fetch(url, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json", Authorization: NETRIS_TOKEN },
+    headers: { "Content-Type": "application/json", Authorization: cfg.token },
     body: JSON.stringify({ idSituacao: idSituacao }),
   });
   const text = await res.text().catch(() => "");
@@ -252,13 +281,14 @@ export type NetrisProxyResult = {
 };
 
 export async function proxyNetrisRequest(params: {
+  cfg: ConfigNetris;
   method: string;
   path: string;            // path depois de /proxy/, SEM barra inicial
   query?: string;          // query string crua (sem "?")
   body?: unknown;
 }): Promise<NetrisProxyResult> {
-  if (!NETRIS_BASE || !NETRIS_TOKEN) {
-    throw new Error("NetRis não configurado no servidor (NETRIS_BASE_URL / NETRIS_TOKEN ausentes)");
+  if (!params.cfg.utilizavel) {
+    throw new Error(ERRO_NAO_CONFIGURADO);
   }
   const method = params.method.toUpperCase();
   if (!PROXY_ALLOWED_METHODS.has(method)) {
@@ -269,10 +299,10 @@ export async function proxyNetrisRequest(params: {
     return { status: 403, ok: false, body: JSON.stringify({ error: "Caminho não permitido" }), contentType: "application/json" };
   }
 
-  const url = `${NETRIS_BASE}/${clean}${params.query ? `?${params.query}` : ""}`;
+  const url = `${params.cfg.base}/${clean}${params.query ? `?${params.query}` : ""}`;
   const init: RequestInit = {
     method,
-    headers: { "Content-Type": "application/json", Authorization: NETRIS_TOKEN },
+    headers: { "Content-Type": "application/json", Authorization: params.cfg.token },
   };
   if (method !== "GET" && params.body !== undefined) {
     init.body = JSON.stringify(params.body);
@@ -289,23 +319,26 @@ export async function proxyNetrisRequest(params: {
 
 // ── Proxy pro PACS (Netris-web) ──────────────────────────────────────────────
 // Mesmo papel do proxy acima, mas pro host do PACS (histórico de situações).
-const NETRIS_PACS_BASE =
-  process.env.NETRIS_PACS_BASE_URL ?? "https://pacs.imagoradiologia.com.br/Netris-web";
-
+// O endereco do PACS tambem virou campo de configuracao; o default historico
+// mora no registro de campos como "padrao", que nao e importavel para o painel
+// de proposito - se fosse, mudar o default no codigo deixaria de ter efeito.
 export async function proxyPacsRequest(params: {
+  cfg: ConfigNetris;
   path: string;
   query?: string;
 }): Promise<NetrisProxyResult> {
-  if (!NETRIS_TOKEN) {
-    throw new Error("NetRis não configurado no servidor (NETRIS_TOKEN ausente)");
+  if (!params.cfg.token) {
+    // O PACS nao usa base_url do gateway, so o token: cobrar utilizavel aqui
+    // bloquearia o historico de situacoes por falta de um campo que ele nem usa.
+    throw new Error("NetRis sem token: preencha em /farol/configurações ou em NETRIS_TOKEN.");
   }
   const clean = params.path.replace(/^\/+/, "");
   if (clean.includes("..")) {
     return { status: 403, ok: false, body: JSON.stringify({ error: "Caminho não permitido" }), contentType: "application/json" };
   }
-  const url = `${NETRIS_PACS_BASE}/${clean}${params.query ? `?${params.query}` : ""}`;
+  const url = `${params.cfg.pacsBase}/${clean}${params.query ? `?${params.query}` : ""}`;
   const res = await fetch(url, {
-    headers: { "Content-Type": "application/json", Authorization: NETRIS_TOKEN },
+    headers: { "Content-Type": "application/json", Authorization: params.cfg.token },
   });
   const text = await res.text().catch(() => "");
   return {
