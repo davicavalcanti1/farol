@@ -111,6 +111,14 @@ export function PainelSaudeProdutos({ produtos }: { produtos: () => Promise<Prod
 
   const fora = dado.filter((p) => p.estado === 'inalcancavel');
 
+  /* Quem não tem URL não está no ar — e não é o mesmo que estar com problema.
+     Misturado na mesma tabela, o "sem URL" afoga o que importa: com 9 produtos
+     e 3 implantados, seis linhas de travessão dominam a tela e a informação de
+     saúde some no meio. Vira lista curta no pé, e a tabela fica só com o que
+     tem estado de verdade. */
+  const implantados = dado.filter((p) => p.estado !== 'sem_url');
+  const naoImplantados = dado.filter((p) => p.estado === 'sem_url');
+
   return (
     <div className="space-y-4">
       {fora.length > 0 && (
@@ -125,7 +133,7 @@ export function PainelSaudeProdutos({ produtos }: { produtos: () => Promise<Prod
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-              <th className="px-4 py-3 font-semibold">Produto</th>
+              <th className="px-4 py-3 font-semibold">Produto ({implantados.length})</th>
               <th className="px-4 py-3 font-semibold">Estado</th>
               <th className="px-4 py-3 font-semibold">Versão</th>
               <th className="px-4 py-3 font-semibold">Banco</th>
@@ -133,7 +141,7 @@ export function PainelSaudeProdutos({ produtos }: { produtos: () => Promise<Prod
             </tr>
           </thead>
           <tbody>
-            {dado.map((p) => (
+            {implantados.map((p) => (
               <tr key={p.id} className="border-b border-border/50 last:border-0">
                 <td className="px-4 py-3">
                   <div className="font-medium">{p.nome}</div>
@@ -166,6 +174,14 @@ export function PainelSaudeProdutos({ produtos }: { produtos: () => Promise<Prod
           </tbody>
         </table>
       </Card>
+
+      {naoImplantados.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          <span className="font-semibold">Não implantados ({naoImplantados.length}):</span>{' '}
+          {naoImplantados.map((p) => p.nome).join(', ')}. Sem URL no catálogo, não há o que
+          sondar — e isso é estado do deploy, não problema de saúde.
+        </p>
+      )}
 
       <Button variante="secundaria" onClick={recarregar}>
         Sondar de novo
